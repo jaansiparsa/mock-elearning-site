@@ -3,4 +3,26 @@
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  
+  /* Brex-MVP colors */
+  --color-background-white: 255 255 255;
+  --color-brex-orange: 255 89 0;
+  --color-primary-black: 0 0 0;
 }
+
+/* Custom color utilities for Tailwind CSS v4 */
+.bg-background-white { background-color: rgb(var(--color-background-white)); }
+.bg-brex-orange { background-color: rgb(var(--color-brex-orange)); }
+.bg-primary-black { background-color: rgb(var(--color-primary-black)); }
+
+.text-brex-orange { color: rgb(var(--color-brex-orange)); }
+.text-primary-black { color: rgb(var(--color-primary-black)); }
+
+.border-brex-orange { border-color: rgb(var(--color-brex-orange)); }
+.border-primary-black { border-color: rgb(var(--color-primary-black)); }
+
+.focus\:ring-brex-orange:focus { --tw-ring-color: rgb(var(--color-brex-orange)); }
+.focus\:border-brex-orange:focus { border-color: rgb(var(--color-brex-orange)); }
+
+.hover\:bg-brex-orange:hover { background-color: rgb(var(--color-brex-orange)); }
+.hover\:text-brex-orange:hover { color: rgb(var(--color-brex-orange)); }

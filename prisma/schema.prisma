@@ -58,6 +58,7 @@ model User {
     id            String    @id @default(cuid())
     name          String?
     email         String?   @unique
+    password      String?   // Added for basic auth
     emailVerified DateTime?
     image         String?
     accounts      Account[]

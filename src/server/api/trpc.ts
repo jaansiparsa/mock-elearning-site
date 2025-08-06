@@ -7,12 +7,12 @@
  * need to use are documented accordingly near the end.
  */
 
-import { initTRPC, TRPCError } from "@trpc/server";
-import superjson from "superjson";
-import { ZodError } from "zod";
+import { TRPCError, initTRPC } from "@trpc/server";
 
+import { ZodError } from "zod";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
+import superjson from "superjson";
 
 /**
  * 1. CONTEXT
@@ -27,7 +27,15 @@ import { db } from "@/server/db";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await auth();
+  let session = null;
+
+  try {
+    session = await auth();
+  } catch (error) {
+    // Handle JWT decryption errors gracefully
+    console.warn("Auth error in tRPC context:", error);
+    session = null;
+  }
 
   return {
     db,
