@@ -61,6 +61,7 @@ model User {
     password      String?   // Added for basic auth
     emailVerified DateTime?
     image         String?
+    role          String    @default("VIEWER")
     accounts      Account[]
     sessions      Session[]
     posts         Post[]

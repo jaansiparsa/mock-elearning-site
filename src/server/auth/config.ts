@@ -15,9 +15,12 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      // ...other properties
-      // role: UserRole;
+      role: string;
     } & DefaultSession["user"];
+  }
+
+  interface User {
+    role?: string;
   }
 }
 
@@ -46,12 +49,14 @@ export const authConfig = {
             email: true,
             name: true,
             password: true,
+            role: true,
           },
         })) as {
           id: string;
           email: string | null;
           name: string | null;
           password: string | null;
+          role: string;
         } | null;
 
         if (!user?.password) {
@@ -71,6 +76,7 @@ export const authConfig = {
           id: user.id,
           email: user.email,
           name: user.name,
+          role: user.role,
         };
       },
     }),
@@ -85,11 +91,13 @@ export const authConfig = {
       user: {
         ...session.user,
         id: token.sub ?? "",
+        role: (token as { role?: string }).role ?? "VIEWER",
       },
     }),
     jwt: ({ token, user }) => {
       if (user) {
         token.sub = user.id;
+        (token as { role?: string }).role = (user as { role?: string }).role;
       }
       return token;
     },
