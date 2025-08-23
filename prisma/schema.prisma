@@ -156,24 +156,29 @@ model Assignment {
 }
 
 model AssignmentSubmission {
-  submissionId String     @id @default(cuid())
-  studentId    String
-  assignmentId String
-  startedAt    DateTime?
-  endedAt      DateTime?
-  grade        Float?
-  feedback     String?
-  assignedAt   DateTime   @default(now())
-  dueDate      DateTime
-  status       String     @default("not_started")
-  assignment   Assignment @relation(fields: [assignmentId], references: [assignmentId], onDelete: Cascade)
-  student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  submissionId      String     @id @default(cuid())
+  studentId         String
+  assignmentId      String
+  startedAt         DateTime?
+  endedAt           DateTime?
+  grade             Float?
+  feedback          String?    // Instructor feedback
+  submissionContent String?    // Student's submission notes
+  fileUrl           String?    // URL to uploaded file
+  fileName          String?    // Original filename
+  assignedAt        DateTime   @default(now())
+  dueDate           DateTime
+  status            String     @default("not_started")
+  submittedAt       DateTime?  // When the submission was made
+  assignment        Assignment @relation(fields: [assignmentId], references: [assignmentId], onDelete: Cascade)
+  student           User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  @@unique([studentId, assignmentId])
+  @@index([studentId, assignmentId])
   @@index([assignmentId])
   @@index([studentId])
   @@index([status])
   @@index([dueDate])
+  @@index([submittedAt])
 }
 
 model StudySession {

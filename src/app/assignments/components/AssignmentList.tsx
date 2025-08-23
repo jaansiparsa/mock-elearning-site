@@ -15,19 +15,17 @@ import { useRouter } from "next/navigation";
 
 interface Assignment {
   assignmentId: string;
-  givenAssignmentId: string;
   title: string;
   description: string;
   dueDate: Date;
   points: number;
-  status: "not_started" | "in_progress" | "submitted" | "graded";
+  status: "not_started" | "in_progress" | "completed" | "graded" | "overdue";
   courseTitle: string;
   courseId: string;
   lessonTitle?: string;
   lessonId?: string;
   grade?: number;
   feedback?: string;
-  notes?: string;
   assignedAt: Date;
   startedAt?: Date;
   completedAt?: Date;
@@ -59,17 +57,17 @@ function getStatusBadge(status: Assignment["status"]) {
       label: "In Progress",
       className: "bg-blue-100 text-blue-800",
     },
-    submitted: {
-      label: "Submitted",
-      className: "bg-yellow-100 text-yellow-800",
+    completed: {
+      label: "Completed",
+      className: "bg-green-100 text-green-800",
     },
     graded: {
       label: "Graded",
       className: "bg-green-100 text-green-800",
     },
-    completed: {
-      label: "Completed",
-      className: "bg-green-100 text-green-800",
+    overdue: {
+      label: "Overdue",
+      className: "bg-red-100 text-red-800",
     },
   };
 
@@ -222,7 +220,7 @@ export default function AssignmentList({
   };
 
   const handleAssignmentClick = (assignment: Assignment) => {
-    router.push(`/assignments/${assignment.givenAssignmentId}`);
+    router.push(`/assignments/${assignment.assignmentId}`);
   };
 
   const SortableHeader = ({

@@ -138,9 +138,13 @@ export interface AssignmentSubmission {
   endedAt?: Date;
   grade?: number;
   feedback?: string;
+  submissionContent?: string; // Student's submission text/notes
+  fileUrl?: string; // URL to uploaded file
+  fileName?: string; // Original filename
   assignedAt: Date;
   dueDate: Date;
   status: string; // "not_started", "in_progress", "completed", "graded", "overdue"
+  submittedAt?: Date; // When the submission was made
 }
 
 export interface Achievement {

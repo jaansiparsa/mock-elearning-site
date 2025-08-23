@@ -378,6 +378,11 @@ async function main() {
       endedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
       grade: 88.0,
       feedback: "Good work! Consider adding input validation next time.",
+      submissionContent:
+        "I implemented the Hello World program using console.log(). The program runs successfully and displays the expected output.",
+      fileUrl: "https://example.com/uploads/hello-world.js",
+      fileName: "hello-world.js",
+      submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
     },
     {
       studentId: student1.id,
@@ -405,6 +410,11 @@ async function main() {
       endedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
       grade: 92.0,
       feedback: "Excellent work! Very thorough implementation.",
+      submissionContent:
+        "Created a comprehensive Hello World program with additional console formatting and error handling.",
+      fileUrl: "https://example.com/uploads/hello-world-enhanced.js",
+      fileName: "hello-world-enhanced.js",
+      submittedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
     },
     {
       studentId: student2.id,

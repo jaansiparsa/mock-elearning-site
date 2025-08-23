@@ -43,15 +43,19 @@ export async function GET(request: NextRequest) {
 
       // Process each assignment in the course
       for (const assignment of course.assignments) {
-        // Check if there's an AssignmentSubmission record for this assignment
-        const submission = await db.assignmentSubmission.findUnique({
+        // Get the latest submission for this assignment (multiple submissions support)
+        const submissions = await db.assignmentSubmission.findMany({
           where: {
-            studentId_assignmentId: {
-              studentId: session.user.id,
-              assignmentId: assignment.assignmentId,
-            },
+            studentId: session.user.id,
+            assignmentId: assignment.assignmentId,
           },
+          orderBy: {
+            submittedAt: "desc",
+          },
+          take: 1,
         });
+
+        const submission = submissions[0] || null;
 
         const now = new Date();
         const dueDate =
