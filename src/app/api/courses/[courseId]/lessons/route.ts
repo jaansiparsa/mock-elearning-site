@@ -4,10 +4,10 @@ import { db } from "@/server/db";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { courseId: string } },
+  { params }: { params: Promise<{ courseId: string }> },
 ) {
   try {
-    const { courseId } = params;
+    const { courseId } = await params;
     const body = await request.json();
     const { title, description, order, estimatedTime, instructorId } = body;
 
@@ -20,7 +20,7 @@ export async function POST(
     }
 
     // Verify course exists and instructor owns it
-    const course = await prisma.course.findFirst({
+    const course = await db.course.findFirst({
       where: {
         courseId,
         instructorId,
@@ -37,7 +37,7 @@ export async function POST(
     }
 
     // Verify instructor role
-    const instructor = await prisma.user.findFirst({
+    const instructor = await db.user.findFirst({
       where: {
         id: instructorId,
         role: "instructor",
@@ -52,7 +52,7 @@ export async function POST(
     }
 
     // Check if lesson order already exists
-    const existingLesson = await prisma.lesson.findFirst({
+    const existingLesson = await db.lesson.findFirst({
       where: {
         courseId,
         order,

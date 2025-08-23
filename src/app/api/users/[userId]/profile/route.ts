@@ -4,10 +4,10 @@ import { db } from "@/server/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
-    const { userId } = params;
+    const { userId } = await params;
 
     // Get user profile with learning statistics
     const user = await db.user.findUnique({

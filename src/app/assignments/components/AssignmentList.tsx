@@ -14,6 +14,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface Assignment {
+  id: string;
+  type: "assignment" | "quiz";
   assignmentId: string;
   title: string;
   description: string;
@@ -88,6 +90,14 @@ function getStatusBadge(status: Assignment["status"]) {
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${config.className}`}
     >
       {config.label}
+    </span>
+  );
+}
+
+function getQuizBadge() {
+  return (
+    <span className="mr-2 inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
+      Quiz
     </span>
   );
 }
@@ -358,7 +368,7 @@ export default function AssignmentList({
                     <SortableHeader column="course" label="Course" />
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-                    <SortableHeader column="title" label="Assignment" />
+                    <SortableHeader column="title" label="Assignment/Quiz" />
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                     <SortableHeader column="dueDate" label="Due Date" />
@@ -395,6 +405,7 @@ export default function AssignmentList({
                     <td className="px-6 py-4">
                       <div className="max-w-xs">
                         <div className="text-sm font-medium text-gray-900">
+                          {assignment.type === "quiz" ? getQuizBadge() : ""}
                           {assignment.title}
                         </div>
                         <div className="line-clamp-2 text-sm text-gray-500">

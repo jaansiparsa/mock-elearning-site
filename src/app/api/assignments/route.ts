@@ -12,9 +12,9 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const sort = searchParams.get("sort") || "dueDate";
-    const status = searchParams.get("status") || "all";
-    const course = searchParams.get("course") || "all";
+    const sort = searchParams.get("sort") ?? "dueDate";
+    const status = searchParams.get("status") ?? "all";
+    const course = searchParams.get("course") ?? "all";
 
     // First, get all courses the user is enrolled in
     const userEnrollments = await db.courseEnrollment.findMany({
@@ -55,11 +55,11 @@ export async function GET(request: NextRequest) {
           take: 1,
         });
 
-        const submission = submissions[0] || null;
+        const submission = submissions[0] ?? null;
 
         const now = new Date();
         const dueDate =
-          submission?.dueDate ||
+          submission?.dueDate ??
           new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Default to 30 days from now
         const isOverdue =
           dueDate < now &&
@@ -101,8 +101,10 @@ export async function GET(request: NextRequest) {
         }
 
         allAssignments.push({
+          id: assignment.assignmentId,
+          type: "assignment",
           assignmentId: assignment.assignmentId,
-          submissionId: submission?.submissionId || null,
+          submissionId: submission?.submissionId ?? null,
           title: assignment.title,
           description: assignment.description,
           dueDate: dueDate,
@@ -111,12 +113,100 @@ export async function GET(request: NextRequest) {
           courseTitle: course.title,
           courseId: course.courseId,
           lessonTitle: null, // Will be populated if lesson association exists
-          lessonId: assignment.lessonId || null,
-          grade: submission?.grade || null,
-          feedback: submission?.feedback || null,
-          assignedAt: submission?.assignedAt || enrollment.enrolledAt,
-          startedAt: submission?.startedAt || null,
-          completedAt: submission?.endedAt || null,
+          lessonId: assignment.lessonId ?? null,
+          grade: submission?.grade ?? null,
+          feedback: submission?.feedback ?? null,
+          assignedAt: submission?.assignedAt ?? enrollment.enrolledAt,
+          startedAt: submission?.startedAt ?? null,
+          completedAt: submission?.endedAt ?? null,
+          isOverdue,
+          isDueToday,
+          isDueThisWeek,
+        });
+      }
+
+      // Process each quiz in the course
+      const quizzes = await db.quiz.findMany({
+        where: { courseId: course.courseId },
+      });
+
+      for (const quiz of quizzes) {
+        // Get the latest submission for this quiz
+        const submissions = await db.quizSubmission.findMany({
+          where: {
+            studentId: session.user.id,
+            quizId: quiz.quizId,
+          },
+          orderBy: {
+            submittedAt: "desc",
+          },
+          take: 1,
+        });
+
+        const submission = submissions[0] ?? null;
+
+        const now = new Date();
+        const dueDate =
+          submission?.dueDate ??
+          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Default to 30 days from now
+        const isOverdue =
+          dueDate < now &&
+          submission?.status !== "completed" &&
+          submission?.status !== "graded";
+        const isDueToday = dueDate.toDateString() === now.toDateString();
+        const isDueThisWeek =
+          dueDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) &&
+          dueDate > now;
+
+        // Map status for quizzes
+        let uiStatus:
+          | "not_started"
+          | "in_progress"
+          | "completed"
+          | "graded"
+          | "overdue" = "not_started";
+
+        if (submission) {
+          switch (submission.status) {
+            case "not_started":
+              uiStatus = "not_started";
+              break;
+            case "in_progress":
+              uiStatus = "in_progress";
+              break;
+            case "completed":
+              uiStatus = "completed";
+              break;
+            case "graded":
+              uiStatus = "graded";
+              break;
+            case "overdue":
+              uiStatus = "overdue";
+              break;
+            default:
+              uiStatus = "not_started";
+          }
+        }
+
+        allAssignments.push({
+          id: quiz.quizId,
+          type: "quiz",
+          assignmentId: quiz.quizId,
+          submissionId: submission?.submissionId ?? null,
+          title: quiz.title,
+          description: quiz.description ?? "",
+          dueDate: dueDate,
+          points: quiz.totalPoints,
+          status: uiStatus,
+          courseTitle: course.title,
+          courseId: course.courseId,
+          lessonTitle: null,
+          lessonId: null,
+          grade: submission?.score ?? null,
+          feedback: submission?.feedback ?? null,
+          assignedAt: submission?.assignedAt ?? enrollment.enrolledAt,
+          startedAt: submission?.startedAt ?? null,
+          completedAt: submission?.endedAt ?? null,
           isOverdue,
           isDueToday,
           isDueThisWeek,

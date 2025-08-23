@@ -1,5 +1,29 @@
 import { CheckCircle, Clock, FileText, Target, TrendingUp } from "lucide-react";
+
 import AssignmentCalendar from "./AssignmentCalendar";
+
+interface Assignment {
+  id: string;
+  type: "assignment" | "quiz";
+  assignmentId: string;
+  title: string;
+  description: string;
+  dueDate: Date;
+  points: number;
+  status: "not_started" | "in_progress" | "completed" | "graded" | "overdue";
+  courseTitle: string;
+  courseId: string;
+  lessonTitle?: string;
+  lessonId?: string;
+  grade?: number;
+  feedback?: string;
+  assignedAt: Date;
+  startedAt?: Date;
+  completedAt?: Date;
+  isOverdue: boolean;
+  isDueToday: boolean;
+  isDueThisWeek: boolean;
+}
 
 interface AssignmentOverviewProps {
   overview: {
@@ -8,13 +32,7 @@ interface AssignmentOverviewProps {
     overdue: number;
     upcoming: number;
   };
-  assignments: Array<{
-    assignmentId: string;
-    title: string;
-    dueDate: Date;
-    status: "not_started" | "in_progress" | "completed" | "graded" | "overdue";
-    courseTitle: string;
-  }>;
+  assignments: Array<Assignment>;
 }
 
 export default function AssignmentOverview({

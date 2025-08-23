@@ -46,12 +46,6 @@ export default async function Navigation() {
                 </Link>
               </>
             )}
-            <Link
-              href="/account"
-              className="hover:text-brex-orange px-3 py-2 text-sm font-medium text-gray-700 transition-colors"
-            >
-              Account
-            </Link>
           </div>
 
           {/* Auth Buttons */}

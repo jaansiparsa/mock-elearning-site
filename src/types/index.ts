@@ -184,3 +184,62 @@ export interface CourseWithStats extends Course {
   totalLessons: number;
   instructor: Pick<User, "id" | "firstName" | "lastName" | "avatarUrl">;
 }
+
+export enum AchievementType {
+  FIRST_COURSE = "first_course",
+  SEVEN_DAY_STREAK = "seven_day_streak",
+  HIGH_SCORER = "high_scorer",
+  COURSE_COMPLETER = "course_completer",
+  QUIZ_MASTER = "quiz_master",
+  STUDY_CHAMPION = "study_champion",
+}
+
+export const ACHIEVEMENT_DISPLAY_MAP = {
+  [AchievementType.FIRST_COURSE]: {
+    title: "First Course Completed",
+    description: "Complete your first course",
+    icon: "🎓",
+  },
+  [AchievementType.SEVEN_DAY_STREAK]: {
+    title: "7-Day Streak",
+    description: "Maintain a 7-day learning streak",
+    icon: "🔥",
+  },
+  [AchievementType.HIGH_SCORER]: {
+    title: "High Scorer",
+    description: "Achieve 90%+ on assignments",
+    icon: "⭐",
+  },
+  [AchievementType.COURSE_COMPLETER]: {
+    title: "Course Completer",
+    description: "Complete multiple courses",
+    icon: "✅",
+  },
+  [AchievementType.QUIZ_MASTER]: {
+    title: "Quiz Master",
+    description: "Achieve 90%+ on quizzes",
+    icon: "🧠",
+  },
+  [AchievementType.STUDY_CHAMPION]: {
+    title: "Study Champion",
+    description: "Accumulate significant study time",
+    icon: "⏰",
+  },
+} as const;
+
+export interface AchievementUI {
+  id: string;
+  type: AchievementType;
+  earnedAt: string;
+}
+
+export interface PotentialAchievement {
+  type: AchievementType;
+  earned: boolean;
+  earnedAt?: string;
+  courseName?: string;
+  currentStreak?: number;
+  highScores?: number;
+  coursesCompleted?: number;
+  studyTime?: number;
+}

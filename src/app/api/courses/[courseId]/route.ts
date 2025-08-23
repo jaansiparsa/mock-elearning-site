@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { db } from "@/server/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> },
 ) {
   try {
-    const courseId = params.courseId;
+    const { courseId } = await params;
 
     if (!courseId) {
       return NextResponse.json(
         { error: "Course ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -58,7 +59,6 @@ export async function GET(
             assignmentId: true,
             title: true,
             description: true,
-            dueDate: true,
             points: true,
             createdAt: true,
           },
@@ -87,18 +87,20 @@ export async function GET(
     });
 
     if (!course) {
-      return NextResponse.json(
-        { error: "Course not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
 
     // Calculate course statistics
     const totalLessons = course.lessons.length;
-    const totalTime = course.lessons.reduce((acc, lesson) => acc + lesson.estimatedTime, 0);
-    const averageRating = course.ratings.length > 0 
-      ? course.ratings.reduce((acc, r) => acc + r.rating, 0) / course.ratings.length 
-      : 0;
+    const totalTime = course.lessons.reduce(
+      (acc, lesson) => acc + lesson.estimatedTime,
+      0,
+    );
+    const averageRating =
+      course.ratings.length > 0
+        ? course.ratings.reduce((acc, r) => acc + r.rating, 0) /
+          course.ratings.length
+        : 0;
     const totalEnrollments = course.enrollments.length;
     const totalAssignments = course.assignments.length;
 
@@ -111,7 +113,7 @@ export async function GET(
       totalRatings: course.ratings.length,
       totalEnrollments,
       totalAssignments,
-      prerequisites: course.prerequisites.map(p => p.prerequisite),
+      prerequisites: course.prerequisites.map((p) => p.prerequisite),
     };
 
     return NextResponse.json({
@@ -122,7 +124,7 @@ export async function GET(
     console.error("Error fetching course details:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

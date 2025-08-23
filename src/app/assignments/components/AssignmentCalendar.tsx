@@ -8,11 +8,26 @@ import {
 import { useMemo, useState } from "react";
 
 interface Assignment {
+  id: string;
+  type: "assignment" | "quiz";
   assignmentId: string;
   title: string;
+  description: string;
   dueDate: Date;
+  points: number;
   status: "not_started" | "in_progress" | "completed" | "graded" | "overdue";
   courseTitle: string;
+  courseId: string;
+  lessonTitle?: string;
+  lessonId?: string;
+  grade?: number;
+  feedback?: string;
+  assignedAt: Date;
+  startedAt?: Date;
+  completedAt?: Date;
+  isOverdue: boolean;
+  isDueToday: boolean;
+  isDueThisWeek: boolean;
 }
 
 interface AssignmentCalendarProps {

@@ -1,86 +1,67 @@
+import { ACHIEVEMENT_DISPLAY_MAP, AchievementType } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/server/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ studentId: string }> },
+  { params }: { params: { studentId: string } },
 ) {
-  const { studentId } = await params;
   try {
-    // Verify student exists
-    const student = await prisma.user.findFirst({
+    const { searchParams } = new URL(request.url);
+    const studentId = params.studentId;
+
+    console.log("Fetching achievements for student:", studentId);
+
+    // Get all achievements for the student
+    const achievements = await db.achievement.findMany({
       where: {
-        id: studentId,
-        role: "student",
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        username: true,
-        currentStreak: true,
-      },
-    });
-
-    if (!student) {
-      return NextResponse.json({ error: "Student not found" }, { status: 404 });
-    }
-
-    // Get student achievements
-    const achievements = await prisma.achievement.findMany({
-      where: { studentId },
-      select: {
-        achievementId: true,
-        badgeType: true,
-        earnedAt: true,
+        studentId: studentId,
       },
       orderBy: {
         earnedAt: "desc",
       },
     });
 
-    // Get learning statistics for context
-    const enrollments = await db.courseEnrollment.findMany({
-      where: { studentId },
-      select: {
-        course: {
-          select: {
-            title: true,
-            category: true,
-          },
-        },
-        lessonsCompleted: true,
-      },
+    console.log("Found achievements:", achievements);
+
+    // Create potential achievements based on the mapping
+    const potentialAchievements = Object.values(AchievementType).map((type) => {
+      const earned = achievements.some(
+        (a) => (a.badgeType as AchievementType) === type,
+      );
+      const earnedAchievement = achievements.find(
+        (a) => (a.badgeType as AchievementType) === type,
+      );
+
+      return {
+        type,
+        earned,
+        earnedAt: earnedAchievement?.earnedAt.toISOString(),
+      };
     });
 
-    const totalCourses = enrollments.length;
-    const totalLessonsCompleted = enrollments.reduce(
-      (sum, enrollment) => sum + enrollment.lessonsCompleted,
-      0,
-    );
-
-    const achievementsData = {
-      student: {
-        id: student.id,
-        firstName: student.firstName,
-        lastName: student.lastName,
-        username: student.username,
-        currentStreak: student.currentStreak,
-      },
-      achievements,
-      statistics: {
+    return NextResponse.json({
+      achievements: achievements.map((achievement) => ({
+        id: achievement.achievementId,
+        type: achievement.badgeType as AchievementType,
+        earnedAt: achievement.earnedAt.toISOString(),
+      })),
+      potentialAchievements,
+      stats: {
         totalAchievements: achievements.length,
-        totalCourses,
-        totalLessonsCompleted,
+        totalCourses: 0,
+        completedCourses: 0,
+        currentStreak: 0,
+        totalStudyTime: 0,
+        highScoringAssignments: 0,
+        highScoringQuizzes: 0,
       },
-    };
-
-    return NextResponse.json({ data: achievementsData });
+    });
   } catch (error) {
-    console.error("Get achievements error:", error);
+    console.error("Error fetching achievements:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Failed to fetch achievements" },
       { status: 500 },
     );
   }

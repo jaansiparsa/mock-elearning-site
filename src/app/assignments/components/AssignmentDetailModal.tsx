@@ -12,28 +12,31 @@ import {
 
 import { useState } from "react";
 
+interface Assignment {
+  id: string;
+  type: "assignment" | "quiz";
+  assignmentId: string;
+  title: string;
+  description: string;
+  dueDate: Date;
+  points: number;
+  status: "not_started" | "in_progress" | "completed" | "graded" | "overdue";
+  courseTitle: string;
+  courseId: string;
+  lessonTitle?: string;
+  lessonId?: string;
+  grade?: number;
+  feedback?: string;
+  assignedAt: Date;
+  startedAt?: Date;
+  completedAt?: Date;
+  isOverdue: boolean;
+  isDueToday: boolean;
+  isDueThisWeek: boolean;
+}
+
 interface AssignmentDetailModalProps {
-  assignment: {
-    assignmentId: string;
-    submissionId: string | null;
-    title: string;
-    description: string;
-    dueDate: Date;
-    points: number;
-    status: string;
-    courseTitle: string;
-    courseId: string;
-    lessonTitle?: string;
-    lessonId?: string;
-    grade?: number;
-    feedback?: string;
-    assignedAt: Date;
-    startedAt?: Date;
-    completedAt?: Date;
-    isOverdue: boolean;
-    isDueToday: boolean;
-    isDueThisWeek: boolean;
-  } | null;
+  assignment: Assignment | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -253,8 +256,13 @@ export default function AssignmentDetailModal({
       <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 p-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
+          <div className="flex items-center space-x-3">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {assignment.type === "quiz" && (
+                <span className="mr-2 inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
+                  Quiz
+                </span>
+              )}
               {assignment.title}
             </h2>
             <p className="text-gray-600">{assignment.courseTitle}</p>

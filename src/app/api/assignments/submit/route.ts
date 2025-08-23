@@ -6,7 +6,12 @@ import { db } from "@/server/db";
 export async function POST(request: NextRequest) {
   try {
     console.log("Assignment submit API called");
-    const body = await request.json();
+    const body = (await request.json()) as {
+      assignmentId: string;
+      submissionContent?: string;
+      fileUrl?: string;
+      fileName?: string;
+    };
     console.log("Request body:", body);
     const { assignmentId, submissionContent, fileUrl, fileName } = body;
 
@@ -109,6 +114,14 @@ export async function POST(request: NextRequest) {
         endedAt: true,
       },
     });
+
+    return NextResponse.json(
+      {
+        message: "Assignment submitted successfully",
+        data: submission,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Submit assignment error:", error);
     return NextResponse.json(

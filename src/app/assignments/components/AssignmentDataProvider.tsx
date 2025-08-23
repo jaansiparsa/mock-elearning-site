@@ -6,6 +6,8 @@ import AssignmentList from "./AssignmentList";
 import AssignmentOverview from "./AssignmentOverview";
 
 interface Assignment {
+  id: string;
+  type: "assignment" | "quiz";
   assignmentId: string;
   submissionId: string | null;
   title: string;
@@ -41,6 +43,8 @@ interface Overview {
 
 interface ApiResponse {
   assignments: Array<{
+    id: string;
+    type: "assignment" | "quiz";
     assignmentId: string;
     submissionId: string | null;
     title: string;
