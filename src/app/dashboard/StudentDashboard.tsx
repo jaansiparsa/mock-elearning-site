@@ -2,7 +2,6 @@ import { BadgeType, CourseCategory, DifficultyLevel } from "@/types";
 
 import { CourseDashboard } from "@/components/course-dashboard";
 import { db } from "@/server/db";
-import RecommendedCourses from "./RecommendedCourses";
 
 interface StudentDashboardProps {
   userId: string;
@@ -294,21 +293,6 @@ export default async function StudentDashboard({
       <div className="rounded-lg bg-white shadow">
         <div className="p-6">
           <CourseDashboard enrollments={enrollments} />
-        </div>
-      </div>
-
-      {/* Recommended Courses */}
-      <div className="rounded-lg bg-white shadow">
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h3 className="text-lg font-medium text-gray-900">
-            Recommended for You
-          </h3>
-          <p className="text-sm text-gray-600">
-            Based on your current enrollments and popular courses
-          </p>
-        </div>
-        <div className="p-6">
-          <RecommendedCourses userId={userId} />
         </div>
       </div>
 
