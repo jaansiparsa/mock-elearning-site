@@ -1,61 +1,50 @@
+import type { Assignment, AssignmentSubmission } from "@/types";
+
 import AssignmentDetailPage from "./AssignmentDetailPage";
 import { Suspense } from "react";
-import { auth } from "@/server/auth";
-import { db } from "@/server/db";
 import { notFound } from "next/navigation";
 
 interface AssignmentPageProps {
   params: Promise<{ assignmentId: string }>;
 }
 
-async function getAssignmentData(assignmentId: string) {
-  try {
-    const assignment = await db.assignment.findUnique({
-      where: { assignmentId },
-      include: {
-        course: {
-          select: {
-            courseId: true,
-            title: true,
-            category: true,
-            difficultyLevel: true,
-          },
-        },
-        lesson: {
-          select: {
-            lessonId: true,
-            title: true,
-            order: true,
-          },
-        },
-      },
-    });
-
-    if (!assignment) {
-      return null;
-    }
-
-    // Get the current user's session
-    const session = await auth();
-    let userSubmissions = [];
-
-    if (session?.user?.id) {
-      // Get all user's submissions for this assignment (multiple submissions support)
-      userSubmissions = await db.assignmentSubmission.findMany({
-        where: {
-          studentId: session.user.id,
-          assignmentId: assignmentId,
-        },
-        orderBy: {
-          submittedAt: "desc",
-        },
-      });
-    }
-
-    return {
-      assignment,
-      userSubmissions,
+interface AssignmentData {
+  assignment: Assignment & {
+    course: {
+      courseId: string;
+      title: string;
+      category: string;
+      difficultyLevel: string;
     };
+    lesson?: {
+      lessonId: string;
+      title: string;
+      order: number;
+    } | null;
+  };
+  userSubmissions: AssignmentSubmission[];
+}
+
+async function getAssignmentData(
+  assignmentId: string,
+): Promise<AssignmentData | null> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/assignments/${assignmentId}`,
+      {
+        cache: "no-store",
+      },
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null;
+      }
+      throw new Error(`Failed to fetch assignment data: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data as AssignmentData;
   } catch (error) {
     console.error("Error fetching assignment data:", error);
     return null;

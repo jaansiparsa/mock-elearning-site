@@ -39,6 +39,32 @@ interface Overview {
   upcoming: number;
 }
 
+interface ApiResponse {
+  assignments: Array<{
+    assignmentId: string;
+    submissionId: string | null;
+    title: string;
+    description: string;
+    dueDate: string;
+    points: number;
+    status: "not_started" | "in_progress" | "completed" | "graded" | "overdue";
+    courseTitle: string;
+    courseId: string;
+    lessonTitle?: string;
+    lessonId?: string;
+    grade?: number;
+    feedback?: string;
+    assignedAt: string;
+    startedAt?: string | null;
+    completedAt?: string | null;
+    isOverdue: boolean;
+    isDueToday: boolean;
+    isDueThisWeek: boolean;
+  }>;
+  courses: Course[];
+  overview: Overview;
+}
+
 interface AssignmentDataProviderProps {
   searchParams: {
     sort?: string;
@@ -62,54 +88,54 @@ export default function AssignmentDataProvider({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchAssignments() {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const params = new URLSearchParams();
-        if (searchParams.sort) params.append("sort", searchParams.sort);
-        if (searchParams.status) params.append("status", searchParams.status);
-        if (searchParams.course) params.append("course", searchParams.course);
-
-        const response = await fetch(`/api/assignments?${params.toString()}`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch assignments");
-        }
-
-        const data = await response.json();
-
-        // Convert date strings back to Date objects
-        const processedAssignments = data.assignments.map(
-          (assignment: any) => ({
-            ...assignment,
-            dueDate: new Date(assignment.dueDate),
-            assignedAt: new Date(assignment.assignedAt),
-            startedAt: assignment.startedAt
-              ? new Date(assignment.startedAt)
-              : undefined,
-            completedAt: assignment.completedAt
-              ? new Date(assignment.completedAt)
-              : undefined,
-          }),
-        );
-
-        setAssignments(processedAssignments);
-        setCourses(data.courses);
-        setOverview(data.overview);
-      } catch (err) {
-        console.error("Error fetching assignments:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to fetch assignments",
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchAssignments();
+    void fetchAssignments();
   }, [searchParams.sort, searchParams.status, searchParams.course]);
+
+  async function fetchAssignments() {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const params = new URLSearchParams();
+      if (searchParams.sort) params.append("sort", searchParams.sort);
+      if (searchParams.status) params.append("status", searchParams.status);
+      if (searchParams.course) params.append("course", searchParams.course);
+
+      const response = await fetch(`/api/assignments?${params.toString()}`);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch assignments");
+      }
+
+      const data: ApiResponse = await response.json();
+
+      // Convert date strings back to Date objects
+      const processedAssignments: Assignment[] = data.assignments.map(
+        (assignment) => ({
+          ...assignment,
+          dueDate: new Date(assignment.dueDate),
+          assignedAt: new Date(assignment.assignedAt),
+          startedAt: assignment.startedAt
+            ? new Date(assignment.startedAt)
+            : undefined,
+          completedAt: assignment.completedAt
+            ? new Date(assignment.completedAt)
+            : undefined,
+        }),
+      );
+
+      setAssignments(processedAssignments);
+      setCourses(data.courses);
+      setOverview(data.overview);
+    } catch (err) {
+      console.error("Error fetching assignments:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch assignments",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -139,7 +165,7 @@ export default function AssignmentDataProvider({
 
   return (
     <div className="space-y-8">
-      <AssignmentOverview overview={overview} />
+      <AssignmentOverview overview={overview} assignments={assignments} />
       <AssignmentList
         assignments={assignments}
         courses={courses}

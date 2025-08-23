@@ -1,4 +1,5 @@
 import { CheckCircle, Clock, FileText, Target, TrendingUp } from "lucide-react";
+import AssignmentCalendar from "./AssignmentCalendar";
 
 interface AssignmentOverviewProps {
   overview: {
@@ -7,10 +8,18 @@ interface AssignmentOverviewProps {
     overdue: number;
     upcoming: number;
   };
+  assignments: Array<{
+    assignmentId: string;
+    title: string;
+    dueDate: Date;
+    status: "not_started" | "in_progress" | "completed" | "graded" | "overdue";
+    courseTitle: string;
+  }>;
 }
 
 export default function AssignmentOverview({
   overview,
+  assignments,
 }: AssignmentOverviewProps) {
   const cards = [
     {
@@ -48,50 +57,56 @@ export default function AssignmentOverview({
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-      {cards.map((card) => {
-        const IconComponent = card.icon;
-        return (
-          <div
-            key={card.title}
-            className={`relative overflow-hidden rounded-lg ${card.bgColor} p-6 transition-all duration-200 hover:shadow-md`}
-          >
-            <div className="flex items-center">
-              <div className={`flex-shrink-0 rounded-lg ${card.color} p-3`}>
-                <IconComponent className="h-6 w-6 text-white" />
+    <div className="space-y-6">
+      {/* Overview Cards */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {cards.map((card) => {
+          const IconComponent = card.icon;
+          return (
+            <div
+              key={card.title}
+              className={`relative overflow-hidden rounded-lg ${card.bgColor} p-6 transition-all duration-200 hover:shadow-md`}
+            >
+              <div className="flex items-center">
+                <div className={`flex-shrink-0 rounded-lg ${card.color} p-3`}>
+                  <IconComponent className="h-6 w-6 text-white" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">
+                    {card.title}
+                  </p>
+                  <p className={`text-2xl font-bold ${card.textColor}`}>
+                    {card.value}
+                  </p>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  {card.title}
-                </p>
-                <p className={`text-2xl font-bold ${card.textColor}`}>
-                  {card.value}
-                </p>
-              </div>
-            </div>
 
-            {/* Progress indicator for completed assignments */}
-            {card.title === "Completed" && overview.total > 0 && (
-              <div className="mt-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Progress</span>
-                  <span className="font-medium text-gray-900">
-                    {Math.round((overview.completed / overview.total) * 100)}%
-                  </span>
+              {/* Progress indicator for completed assignments */}
+              {card.title === "Completed" && overview.total > 0 && (
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Progress</span>
+                    <span className="font-medium text-gray-900">
+                      {Math.round((overview.completed / overview.total) * 100)}%
+                    </span>
+                  </div>
+                  <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
+                    <div
+                      className={`h-2 rounded-full ${card.color} transition-all duration-300`}
+                      style={{
+                        width: `${(overview.completed / overview.total) * 100}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
-                  <div
-                    className={`h-2 rounded-full ${card.color} transition-all duration-300`}
-                    style={{
-                      width: `${(overview.completed / overview.total) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Calendar */}
+      <AssignmentCalendar assignments={assignments} />
     </div>
   );
 }
