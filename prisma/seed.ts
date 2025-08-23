@@ -646,6 +646,100 @@ async function main() {
     );
   }
 
+  // Create given assignments for enrolled students
+  const givenAssignments = [
+    // Student 1 assignments
+    {
+      studentId: student1.id,
+      courseId: createdCourses[0].courseId, // JavaScript Fundamentals
+      assignmentId: createdAssignments[0].assignmentId,
+      lessonId: createdLessons[0].lessonId,
+      status: "completed" as const,
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      grade: 88.0,
+      feedback: "Good work! Consider adding input validation next time.",
+      notes: "Completed early, good understanding of concepts",
+      assignedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
+      startedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000), // 12 days ago
+      completedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+    },
+    {
+      studentId: student1.id,
+      courseId: createdCourses[0].courseId,
+      assignmentId: createdAssignments[1].assignmentId,
+      lessonId: createdLessons[1].lessonId,
+      status: "in_progress" as const,
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      notes: "Working on advanced concepts",
+      assignedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      startedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    },
+    {
+      studentId: student1.id,
+      courseId: createdCourses[0].courseId,
+      assignmentId: createdAssignments[2].assignmentId,
+      lessonId: createdLessons[2].lessonId,
+      status: "not_started" as const,
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+    },
+    // Student 2 assignments
+    {
+      studentId: student2.id,
+      courseId: createdCourses[0].courseId,
+      assignmentId: createdAssignments[0].assignmentId,
+      lessonId: createdLessons[0].lessonId,
+      status: "completed" as const,
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      grade: 92.0,
+      feedback: "Excellent work! Very thorough implementation.",
+      notes: "Great attention to detail",
+      assignedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+      startedAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000),
+      completedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+    },
+    {
+      studentId: student2.id,
+      courseId: createdCourses[0].courseId,
+      assignmentId: createdAssignments[1].assignmentId,
+      lessonId: createdLessons[1].lessonId,
+      status: "submitted" as const,
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      notes: "Submitted for review",
+      assignedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+      startedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
+    },
+    // Student 1 in Advanced React course
+    {
+      studentId: student1.id,
+      courseId: createdCourses[1].courseId, // Advanced React
+      assignmentId: createdAssignments[3].assignmentId,
+      lessonId: createdLessons[3].lessonId,
+      status: "not_started" as const,
+      dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000), // 45 days from now
+      assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+    },
+    {
+      studentId: student1.id,
+      courseId: createdCourses[1].courseId,
+      assignmentId: createdAssignments[4].assignmentId,
+      lessonId: createdLessons[4].lessonId,
+      status: "not_started" as const,
+      dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+      assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+    },
+  ];
+
+  console.log("Creating given assignments...");
+  for (const givenAssignmentData of givenAssignments) {
+    const givenAssignment = await prisma.givenAssignment.create({
+      data: givenAssignmentData,
+    });
+    console.log(
+      `Created given assignment: ${givenAssignment.status} for student ${givenAssignment.studentId} in course ${givenAssignment.courseId}`,
+    );
+  }
+
   // Create achievements
   const achievements = [
     {

@@ -7,16 +7,18 @@ import { Suspense } from "react";
 import { db } from "@/server/db";
 
 interface ExplorePageProps {
-  searchParams: {
+  searchParams: Promise<{
     category?: string;
     difficulty?: string;
     search?: string;
     page?: string;
     sort?: string;
-  };
+  }>;
 }
 
-async function getCourses(searchParams: ExplorePageProps["searchParams"]) {
+async function getCourses(
+  searchParams: Awaited<ExplorePageProps["searchParams"]>,
+) {
   const {
     category,
     difficulty,
@@ -127,7 +129,7 @@ async function getCourses(searchParams: ExplorePageProps["searchParams"]) {
       course.ratings.length > 0
         ? course.ratings.reduce((sum, r) => sum + r.rating, 0) /
           course.ratings.length
-        : 0;
+        : undefined;
 
     return {
       courseId: course.courseId,
@@ -137,7 +139,9 @@ async function getCourses(searchParams: ExplorePageProps["searchParams"]) {
       category: course.category,
       difficultyLevel: course.difficultyLevel,
       instructor: course.instructor,
-      averageRating: Math.round(averageRating * 10) / 10,
+      averageRating: averageRating
+        ? Math.round(averageRating * 10) / 10
+        : undefined,
       totalLessons: course._count.lessons,
       totalEnrollments: course._count.enrollments,
       totalRatings: course._count.ratings,
@@ -160,7 +164,8 @@ async function getCourses(searchParams: ExplorePageProps["searchParams"]) {
 }
 
 export default async function ExplorePage({ searchParams }: ExplorePageProps) {
-  const { courses, pagination } = await getCourses(searchParams);
+  const resolvedSearchParams = await searchParams;
+  const { courses, pagination } = await getCourses(resolvedSearchParams);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -183,7 +188,7 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
         <div className="lg:grid lg:grid-cols-4 lg:gap-8">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1">
-            <CourseFilters searchParams={searchParams} />
+            <CourseFilters searchParams={resolvedSearchParams} />
           </div>
 
           {/* Courses Grid */}
@@ -195,15 +200,17 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
                   {pagination.totalCount} Course
                   {pagination.totalCount !== 1 ? "s" : ""} Found
                 </h2>
-                {searchParams.search && (
+                {resolvedSearchParams.search && (
                   <p className="mt-1 text-sm text-gray-600">
-                    Results for "{searchParams.search}"
+                    Results for "{resolvedSearchParams.search}"
                   </p>
                 )}
               </div>
 
               {/* Sort Dropdown */}
-              <SortControls currentSort={searchParams.sort || "newest"} />
+              <SortControls
+                currentSort={resolvedSearchParams.sort || "newest"}
+              />
             </div>
 
             {/* Courses Grid */}
@@ -241,7 +248,7 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
                   {pagination.hasPrev && (
                     <a
                       href={`/explore?${new URLSearchParams({
-                        ...searchParams,
+                        ...resolvedSearchParams,
                         page: (pagination.page - 1).toString(),
                       })}`}
                       className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
@@ -268,7 +275,7 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
                         )}
                         <a
                           href={`/explore?${new URLSearchParams({
-                            ...searchParams,
+                            ...resolvedSearchParams,
                             page: page.toString(),
                           })}`}
                           className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium ${
@@ -285,7 +292,7 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
                   {pagination.hasNext && (
                     <a
                       href={`/explore?${new URLSearchParams({
-                        ...searchParams,
+                        ...resolvedSearchParams,
                         page: (pagination.page + 1).toString(),
                       })}`}
                       className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"

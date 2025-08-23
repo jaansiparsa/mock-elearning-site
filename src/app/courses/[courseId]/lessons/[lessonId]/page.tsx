@@ -78,7 +78,10 @@ async function getLessonData(
     const nextLesson = lesson.course.lessons[currentLessonIndex + 1];
 
     return {
-      lesson,
+      lesson: {
+        ...lesson,
+        courseId: lesson.courseId,
+      },
       isCompleted,
       nextLesson,
       totalLessons: lesson.course.lessons.length,

@@ -98,12 +98,14 @@ export const authConfig = {
         ...session.user,
         id: token.sub ?? "",
         role: (token as { role?: string }).role ?? "student",
+        name: (token as { name?: string }).name,
       },
     }),
     jwt: ({ token, user }) => {
       if (user) {
         token.sub = user.id;
         (token as { role?: string }).role = (user as { role?: string }).role;
+        (token as { name?: string }).name = (user as { name?: string }).name;
       }
       return token;
     },

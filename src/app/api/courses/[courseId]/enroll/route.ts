@@ -5,9 +5,10 @@ import { db } from "@/server/db";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { courseId: string } },
+  { params }: { params: Promise<{ courseId: string }> },
 ) {
   try {
+    const { courseId } = await params;
     const session = await auth();
 
     if (!session?.user?.id) {
@@ -17,13 +18,19 @@ export async function POST(
       );
     }
 
-    const { courseId } = params;
     const studentId = session.user.id;
 
-    // Check if course exists
+    // Check if course exists and get its assignments
     const course = await db.course.findUnique({
       where: { courseId },
-      select: { courseId: true },
+      include: {
+        assignments: {
+          orderBy: { createdAt: "asc" },
+        },
+        lessons: {
+          orderBy: { order: "asc" },
+        },
+      },
     });
 
     if (!course) {
@@ -46,7 +53,7 @@ export async function POST(
     }
 
     // Create enrollment
-    await db.courseEnrollment.create({
+    const enrollment = await db.courseEnrollment.create({
       data: {
         courseId,
         studentId,
@@ -54,8 +61,36 @@ export async function POST(
       },
     });
 
+    // Create GivenAssignment records for all assignments in the course
+    const givenAssignments = [];
+    for (let i = 0; i < course.assignments.length; i++) {
+      const assignment = course.assignments[i];
+      const lesson = course.lessons[i] || null; // Associate with corresponding lesson if available
+
+      const givenAssignment = await db.givenAssignment.create({
+        data: {
+          studentId,
+          courseId,
+          assignmentId: assignment.assignmentId,
+          lessonId: lesson?.lessonId || null,
+          status: "not_started",
+          dueDate: assignment.dueDate, // Use the assignment's original due date
+          assignedAt: new Date(),
+        },
+      });
+
+      givenAssignments.push(givenAssignment);
+    }
+
+    console.log(
+      `Created ${givenAssignments.length} given assignments for student ${studentId} in course ${courseId}`,
+    );
+
     return NextResponse.json(
-      { message: "Successfully enrolled in course" },
+      {
+        message: "Successfully enrolled in course",
+        assignmentsCreated: givenAssignments.length,
+      },
       { status: 201 },
     );
   } catch (error) {
@@ -69,9 +104,10 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { courseId: string } },
+  { params }: { params: Promise<{ courseId: string }> },
 ) {
   try {
+    const { courseId } = await params;
     const session = await auth();
 
     if (!session?.user?.id) {
@@ -81,7 +117,6 @@ export async function DELETE(
       );
     }
 
-    const { courseId } = params;
     const studentId = session.user.id;
 
     // Check if enrolled
@@ -98,6 +133,14 @@ export async function DELETE(
         { status: 400 },
       );
     }
+
+    // Delete all GivenAssignment records for this student and course
+    await db.givenAssignment.deleteMany({
+      where: {
+        courseId,
+        studentId,
+      },
+    });
 
     // Delete enrollment
     await db.courseEnrollment.delete({

@@ -149,44 +149,49 @@ export default function VerticalCourseCard({
           </div>
         </div>
 
-        {/* Rating */}
-        {course.averageRating && course.averageRating > 0 && (
-          <div className="mb-3 flex items-center">
-            <div className="flex items-center">
-              {Array.from({ length: 5 }, (_, i) => (
-                <Star
-                  key={i}
-                  className={`h-3 w-3 ${
-                    i < Math.round(course.averageRating!)
-                      ? "fill-current text-yellow-400"
-                      : "text-gray-300"
-                  }`}
-                />
-              ))}
+        {/* Rating and Progress Section - Fixed Height Container */}
+        <div className="mb-3 min-h-[4rem]">
+          {/* Rating */}
+          {course.averageRating && course.averageRating > 0 ? (
+            <div className="mb-3 flex items-center">
+              <div className="flex items-center">
+                {Array.from({ length: 5 }, (_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-3 w-3 ${
+                      i < Math.round(course.averageRating!)
+                        ? "fill-current text-yellow-400"
+                        : "text-gray-300"
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="ml-2 text-xs text-gray-600">
+                {course.averageRating} ({course.totalRatings ?? 0} reviews)
+              </span>
             </div>
-            <span className="ml-2 text-xs text-gray-600">
-              {course.averageRating} ({course.totalRatings ?? 0} reviews)
-            </span>
-          </div>
-        )}
+          ) : (
+            <div className="mb-3 h-6"></div>
+          )}
 
-        {/* Progress Bar */}
-        <div className="mb-3">
-          <div className="mb-1 flex justify-between text-xs text-gray-600">
-            <span>Progress</span>
-            <span>
-              {enrollment.lessonsCompleted}/{totalLessons} lessons
-            </span>
+          {/* Progress Bar */}
+          <div>
+            <div className="mb-1 flex justify-between text-xs text-gray-600">
+              <span>Progress</span>
+              <span>
+                {enrollment.lessonsCompleted}/{totalLessons} lessons
+              </span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-gray-200">
+              <div
+                className="h-2 rounded-full bg-blue-600 transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              {progressPercent}% complete
+            </p>
           </div>
-          <div className="h-2 w-full rounded-full bg-gray-200">
-            <div
-              className="h-2 rounded-full bg-blue-600 transition-all duration-300"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <p className="mt-1 text-xs text-gray-500">
-            {progressPercent}% complete
-          </p>
         </div>
 
         {/* Time Information */}

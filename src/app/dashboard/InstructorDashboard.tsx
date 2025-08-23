@@ -1,4 +1,4 @@
-import { CourseCategory, DifficultyLevel } from "@/types";
+import type { CourseCategory, DifficultyLevel } from "@prisma/client";
 
 import { db } from "@/server/db";
 
@@ -212,7 +212,7 @@ export default async function InstructorDashboard({
               Welcome back, {user.firstName}!
             </h3>
             <p className="text-blue-100">
-              You're teaching {totalCourses} course
+              You&apos;re teaching {totalCourses} course
               {totalCourses !== 1 ? "s" : ""} to {totalStudents} student
               {totalStudents !== 1 ? "s" : ""}
             </p>

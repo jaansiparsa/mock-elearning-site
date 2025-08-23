@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { prisma } from "@/server/db";
+import { db } from "@/server/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { studentId: string } },
+  { params }: { params: Promise<{ studentId: string }> },
 ) {
+  const { studentId } = await params;
   try {
-    const { studentId } = params;
-
     // Verify student exists
     const student = await prisma.user.findFirst({
       where: {
@@ -42,7 +41,7 @@ export async function GET(
     });
 
     // Get learning statistics for context
-    const enrollments = await prisma.courseEnrollment.findMany({
+    const enrollments = await db.courseEnrollment.findMany({
       where: { studentId },
       select: {
         course: {
@@ -86,4 +85,3 @@ export async function GET(
     );
   }
 }
-
