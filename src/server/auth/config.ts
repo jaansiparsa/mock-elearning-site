@@ -47,14 +47,16 @@ export const authConfig = {
           select: {
             id: true,
             email: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             password: true,
             role: true,
           },
         })) as {
           id: string;
           email: string | null;
-          name: string | null;
+          firstName: string;
+          lastName: string;
           password: string | null;
           role: string;
         } | null;
@@ -75,7 +77,7 @@ export const authConfig = {
         return {
           id: user.id,
           email: user.email,
-          name: user.name,
+          name: `${user.firstName} ${user.lastName}`,
           role: user.role,
         };
       },
@@ -84,6 +86,10 @@ export const authConfig = {
   adapter: PrismaAdapter(db),
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days default
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days default
   },
   callbacks: {
     session: ({ session, token }) => ({
@@ -91,7 +97,7 @@ export const authConfig = {
       user: {
         ...session.user,
         id: token.sub ?? "",
-        role: (token as { role?: string }).role ?? "VIEWER",
+        role: (token as { role?: string }).role ?? "student",
       },
     }),
     jwt: ({ token, user }) => {
@@ -104,5 +110,6 @@ export const authConfig = {
   },
   pages: {
     signIn: "/auth/signin",
+    error: "/auth/error",
   },
 } satisfies NextAuthConfig;

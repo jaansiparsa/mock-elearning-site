@@ -11,17 +11,32 @@ export default async function Navigation() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="text-brex-orange text-2xl font-bold">
-              Brex-MVP
+              LearnHub
             </Link>
           </div>
 
           {/* Navigation Tabs */}
           <div className="hidden space-x-8 md:flex">
             <Link
-              href="/posts"
+              href="/explore"
               className="hover:text-brex-orange px-3 py-2 text-sm font-medium text-gray-700 transition-colors"
             >
-              Posts
+              Explore
+            </Link>
+
+            {session && (
+              <Link
+                href="/dashboard"
+                className="hover:text-brex-orange px-3 py-2 text-sm font-medium text-gray-700 transition-colors"
+              >
+                Dashboard
+              </Link>
+            )}
+            <Link
+              href="/account"
+              className="hover:text-brex-orange px-3 py-2 text-sm font-medium text-gray-700 transition-colors"
+            >
+              Account
             </Link>
           </div>
 

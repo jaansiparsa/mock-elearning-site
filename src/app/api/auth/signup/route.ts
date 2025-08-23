@@ -6,16 +6,18 @@ import { db } from "@/server/db";
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as {
-      name?: string;
+      firstName?: string;
+      lastName?: string;
       email?: string;
+      username?: string;
       password?: string;
     };
-    const { name, email, password } = body;
+    const { firstName, lastName, email, username, password } = body;
 
     // Validate input
-    if (!name || !email || !password) {
+    if (!firstName || !lastName || !email || !username || !password) {
       return NextResponse.json(
-        { error: "Name, email, and password are required" },
+        { error: "All fields are required" },
         { status: 400 },
       );
     }
@@ -27,33 +29,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists
-    const existingUser = await db.user.findUnique({
+    // Check if user already exists with email
+    const existingUserByEmail = await db.user.findUnique({
       where: { email },
     });
 
-    if (existingUser) {
+    if (existingUserByEmail) {
       return NextResponse.json(
         { error: "User with this email already exists" },
         { status: 400 },
       );
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // Create user
-    const user = await db.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-      },
+    // Check if username is already taken
+    const existingUserByUsername = await db.user.findUnique({
+      where: { username },
     });
 
+    if (existingUserByUsername) {
+      return NextResponse.json(
+        { error: "Username is already taken" },
+        { status: 400 },
+      );
+    }
+
+    // For mock email verification, we'll store the user data temporarily
+    // In a real app, you'd send an actual email and store verification codes
+    const mockVerificationCode = "123456"; // This would be generated randomly in production
+
+    // Store verification data temporarily (in production, use Redis or database)
+    // For now, we'll just return success and let the verification endpoint handle creation
+
     return NextResponse.json(
-      { message: "User created successfully" },
-      { status: 201 },
+      {
+        message: "Verification code sent to email",
+        mockCode: mockVerificationCode, // Remove this in production
+      },
+      { status: 200 },
     );
   } catch (error) {
     console.error("Signup error:", error);

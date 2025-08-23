@@ -1,5 +1,4 @@
 import { HydrateClient } from "@/trpc/server";
-import Link from "next/link";
 import { auth } from "@/server/auth";
 
 export default async function Home() {
