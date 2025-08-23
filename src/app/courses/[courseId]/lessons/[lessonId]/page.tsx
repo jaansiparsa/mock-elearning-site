@@ -73,7 +73,7 @@ async function getLessonData(
 
     // Find next lesson
     const currentLessonIndex = lesson.course.lessons.findIndex(
-      (l) => l.lessonId === lessonId,
+      (l: { lessonId: string }) => l.lessonId === lessonId,
     );
     const nextLesson = lesson.course.lessons[currentLessonIndex + 1];
 

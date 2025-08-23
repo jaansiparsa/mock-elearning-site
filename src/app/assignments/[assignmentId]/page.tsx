@@ -43,8 +43,8 @@ async function getAssignmentData(
       throw new Error(`Failed to fetch assignment data: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data as AssignmentData;
+    const data = (await response.json()) as AssignmentData;
+    return data;
   } catch (error) {
     console.error("Error fetching assignment data:", error);
     return null;

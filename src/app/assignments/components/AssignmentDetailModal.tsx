@@ -111,7 +111,7 @@ export default function AssignmentDetailModal({
       timeline.push({
         id: "in_progress",
         status: "in_progress",
-        date: assignment.startedAt || new Date(),
+        date: assignment.startedAt ?? new Date(),
         label: "Work In Progress",
         description: "Currently working on this assignment",
       });
@@ -507,11 +507,11 @@ export default function AssignmentDetailModal({
                 return (
                   <div
                     key={material.id}
-                    className={`rounded-lg border p-4 ${colorClasses[material.color as keyof typeof colorClasses]}`}
+                    className={`rounded-lg border p-4 ${colorClasses[material.color]}`}
                   >
                     <div className="mb-2 flex items-center space-x-2">
                       <IconComponent
-                        className={`h-5 w-5 ${iconColorClasses[material.color as keyof typeof iconColorClasses]}`}
+                        className={`h-5 w-5 ${iconColorClasses[material.color]}`}
                       />
                       <span className="font-medium">{material.title}</span>
                     </div>

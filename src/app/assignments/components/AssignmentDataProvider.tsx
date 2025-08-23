@@ -107,7 +107,7 @@ export default function AssignmentDataProvider({
         throw new Error("Failed to fetch assignments");
       }
 
-      const data: ApiResponse = await response.json();
+      const data = (await response.json()) as ApiResponse;
 
       // Convert date strings back to Date objects
       const processedAssignments: Assignment[] = data.assignments.map(
