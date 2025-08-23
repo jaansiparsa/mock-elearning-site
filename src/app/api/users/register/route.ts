@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { StudyTime, UserRole } from "@/types";
 
 import bcrypt from "bcryptjs";
-import { prisma } from "@/server/db";
+import { db } from "@/server/db";
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findFirst({
+    const existingUser = await db.user.findFirst({
       where: {
         OR: [{ email }, { username }],
       },
@@ -50,15 +50,15 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // Create user
-    const user = await prisma.user.create({
+    const user = await db.user.create({
       data: {
         email,
         password: hashedPassword,
         firstName,
         lastName,
         username,
-        role: role || UserRole.STUDENT,
-        preferredStudyTime: preferredStudyTime || StudyTime.MORNING,
+        role: role || UserRole.student,
+        preferredStudyTime: preferredStudyTime || StudyTime.morning,
         notificationPreference: true,
         currentStreak: 0,
       },

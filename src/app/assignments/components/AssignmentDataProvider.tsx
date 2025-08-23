@@ -7,19 +7,18 @@ import AssignmentOverview from "./AssignmentOverview";
 
 interface Assignment {
   assignmentId: string;
-  givenAssignmentId: string;
+  submissionId: string | null;
   title: string;
   description: string;
   dueDate: Date;
   points: number;
-  status: "not_started" | "in_progress" | "submitted" | "graded";
+  status: "not_started" | "in_progress" | "completed" | "graded" | "overdue";
   courseTitle: string;
   courseId: string;
   lessonTitle?: string;
   lessonId?: string;
   grade?: number;
   feedback?: string;
-  notes?: string;
   assignedAt: Date;
   startedAt?: Date;
   completedAt?: Date;

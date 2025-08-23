@@ -1,155 +1,140 @@
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Starting e-learning platform database seed...");
+  console.log("Starting database seeding...");
 
-  // Create sample users with different roles
+  // Clear existing data
+  console.log("Clearing existing data...");
+  await prisma.learningEvent.deleteMany();
+  await prisma.studySession.deleteMany();
+  await prisma.lessonCompletion.deleteMany();
+  await prisma.assignmentSubmission.deleteMany();
+  await prisma.assignment.deleteMany();
+  await prisma.lesson.deleteMany();
+  await prisma.courseRating.deleteMany();
+  await prisma.courseEnrollment.deleteMany();
+  await prisma.achievement.deleteMany();
+  await prisma.quizSubmission.deleteMany();
+  await prisma.progressSummary.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.course.deleteMany();
+
+  // Create users
+  console.log("Creating users...");
   const users = [
     {
-      email: "admin@elearning.com",
-      password: await bcrypt.hash("admin123", 12),
+      email: "john.doe@example.com",
+      password: "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0wSdbqK/1m6", // password123
+      firstName: "John",
+      lastName: "Doe",
+      username: "johndoe",
+      role: "student",
+      avatarUrl: "https://placekitten.com/200/200",
+      notificationPreference: true,
+      preferredStudyTime: "morning",
+      currentStreak: 5,
+    },
+    {
+      email: "jane.smith@example.com",
+      password: "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0wSdbqK/1m6", // password123
+      firstName: "Jane",
+      lastName: "Smith",
+      username: "janesmith",
+      role: "student",
+      avatarUrl: "https://placekitten.com/201/201",
+      notificationPreference: false,
+      preferredStudyTime: "evening",
+      currentStreak: 3,
+    },
+    {
+      email: "prof.wilson@example.com",
+      password: "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0wSdbqK/1m6", // password123
+      firstName: "Professor",
+      lastName: "Wilson",
+      username: "profwilson",
+      role: "instructor",
+      avatarUrl: "https://placekitten.com/202/202",
+      notificationPreference: true,
+      preferredStudyTime: "morning",
+      currentStreak: 0,
+    },
+    {
+      email: "admin@example.com",
+      password: "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0wSdbqK/1m6", // password123
       firstName: "Admin",
       lastName: "User",
       username: "admin",
-      role: "admin" as const,
+      role: "admin",
+      avatarUrl: "https://placekitten.com/203/203",
       notificationPreference: true,
-      preferredStudyTime: "morning" as const,
-      currentStreak: 0,
-    },
-    {
-      email: "instructor1@elearning.com",
-      password: await bcrypt.hash("instructor123", 12),
-      firstName: "Sarah",
-      lastName: "Johnson",
-      username: "sarah_johnson",
-      role: "instructor" as const,
-      notificationPreference: true,
-      preferredStudyTime: "morning" as const,
-      currentStreak: 0,
-    },
-    {
-      email: "instructor2@elearning.com",
-      password: await bcrypt.hash("instructor123", 12),
-      firstName: "Michael",
-      lastName: "Chen",
-      username: "michael_chen",
-      role: "instructor" as const,
-      notificationPreference: false,
-      preferredStudyTime: "evening" as const,
-      currentStreak: 0,
-    },
-    {
-      email: "student1@elearning.com",
-      password: await bcrypt.hash("student123", 12),
-      firstName: "Emma",
-      lastName: "Wilson",
-      username: "emma_wilson",
-      role: "student" as const,
-      notificationPreference: true,
-      preferredStudyTime: "afternoon" as const,
-      currentStreak: 7,
-      lastLearned: new Date(),
-    },
-    {
-      email: "student2@elearning.com",
-      password: await bcrypt.hash("student123", 12),
-      firstName: "Alex",
-      lastName: "Davis",
-      username: "alex_davis",
-      role: "student" as const,
-      notificationPreference: true,
-      preferredStudyTime: "night" as const,
-      currentStreak: 3,
-      lastLearned: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-    },
-    {
-      email: "student3@elearning.com",
-      password: await bcrypt.hash("student123", 12),
-      firstName: "Jordan",
-      lastName: "Brown",
-      username: "jordan_brown",
-      role: "student" as const,
-      notificationPreference: false,
-      preferredStudyTime: "morning" as const,
+      preferredStudyTime: "morning",
       currentStreak: 0,
     },
   ];
 
-  console.log("Creating users...");
   const createdUsers = [];
   for (const userData of users) {
-    const user = await prisma.user.upsert({
-      where: { email: userData.email },
-      update: {},
-      create: userData,
+    const user = await prisma.user.create({
+      data: userData,
     });
     createdUsers.push(user);
-    console.log(
-      `Created user: ${user.firstName} ${user.lastName} (${user.email}) - Role: ${user.role}`,
-    );
+    console.log(`Created user: ${user.username} (${user.role})`);
   }
 
-  // Get instructor and student users
-  const adminUser = createdUsers.find((u) => u.role === "admin")!;
-  const instructor1 = createdUsers.find((u) => u.username === "sarah_johnson")!;
-  const instructor2 = createdUsers.find((u) => u.username === "michael_chen")!;
-  const student1 = createdUsers.find((u) => u.username === "emma_wilson")!;
-  const student2 = createdUsers.find((u) => u.username === "alex_davis")!;
-  const student3 = createdUsers.find((u) => u.username === "jordan_brown")!;
+  const [student1, student2, instructor1, admin] = createdUsers;
 
-  // Create sample courses
+  // Create courses
+  console.log("Creating courses...");
   const courses = [
     {
       title: "JavaScript Fundamentals",
       description:
-        "Learn the basics of JavaScript programming language from scratch. Perfect for beginners who want to start their coding journey.",
+        "Learn the basics of JavaScript programming including variables, functions, and control structures.",
       thumbnailUrl: "https://placekitten.com/400/300",
-      category: "programming" as const,
-      difficultyLevel: "beginner" as const,
+      category: "programming",
+      difficultyLevel: "beginner",
       instructorId: instructor1.id,
     },
     {
       title: "Advanced React Development",
       description:
-        "Master React hooks, context, and advanced patterns. Build scalable applications with modern React practices.",
-      thumbnailUrl: "https://placekitten.com/400/301",
-      category: "programming" as const,
-      difficultyLevel: "intermediate" as const,
+        "Master React hooks, context, and advanced patterns for building scalable applications.",
+      thumbnailUrl: "https://placekitten.com/401/301",
+      category: "programming",
+      difficultyLevel: "advanced",
+      instructorId: instructor1.id,
+    },
+    {
+      title: "Digital Marketing Strategy",
+      description:
+        "Learn modern digital marketing techniques including SEO, social media, and content marketing.",
+      thumbnailUrl: "https://placekitten.com/402/302",
+      category: "marketing",
+      difficultyLevel: "intermediate",
       instructorId: instructor1.id,
     },
     {
       title: "UI/UX Design Principles",
       description:
-        "Learn the fundamentals of user interface and user experience design. Create beautiful and functional digital products.",
-      thumbnailUrl: "https://placekitten.com/400/302",
-      category: "design" as const,
-      difficultyLevel: "beginner" as const,
-      instructorId: instructor2.id,
+        "Master the fundamentals of user interface and user experience design.",
+      thumbnailUrl: "https://placekitten.com/403/303",
+      category: "design",
+      difficultyLevel: "intermediate",
+      instructorId: instructor1.id,
     },
     {
-      title: "Digital Marketing Strategy",
+      title: "Business Finance Fundamentals",
       description:
-        "Develop comprehensive digital marketing strategies. Learn SEO, social media, and content marketing techniques.",
-      thumbnailUrl: "https://placekitten.com/400/303",
-      category: "marketing" as const,
-      difficultyLevel: "intermediate" as const,
-      instructorId: instructor2.id,
-    },
-    {
-      title: "Business Finance Basics",
-      description:
-        "Understand fundamental business finance concepts. Learn about budgeting, forecasting, and financial analysis.",
-      thumbnailUrl: "https://placekitten.com/400/304",
-      category: "business" as const,
-      difficultyLevel: "beginner" as const,
+        "Understand key financial concepts for business decision making.",
+      thumbnailUrl: "https://placekitten.com/404/304",
+      category: "business",
+      difficultyLevel: "beginner",
       instructorId: instructor1.id,
     },
   ];
 
-  console.log("Creating courses...");
   const createdCourses = [];
   for (const courseData of courses) {
     const course = await prisma.course.create({
@@ -159,39 +144,31 @@ async function main() {
     console.log(`Created course: ${course.title}`);
   }
 
-  // Create course prerequisites (Advanced React requires JavaScript Fundamentals)
-  console.log("Creating course prerequisites...");
-  await prisma.coursePrerequisite.create({
-    data: {
-      courseId: createdCourses[1].courseId, // Advanced React
-      prerequisiteId: createdCourses[0].courseId, // JavaScript Fundamentals
-    },
-  });
-  console.log(
-    "Created prerequisite: Advanced React requires JavaScript Fundamentals",
-  );
-
-  // Create lessons for each course
+  // Create lessons
+  console.log("Creating lessons...");
   const lessons = [
     // JavaScript Fundamentals lessons
     {
       courseId: createdCourses[0].courseId,
       title: "Introduction to JavaScript",
-      description: "What is JavaScript and why is it important?",
+      description:
+        "Learn what JavaScript is and how to set up your development environment.",
       order: 1,
       estimatedTime: 30,
     },
     {
       courseId: createdCourses[0].courseId,
       title: "Variables and Data Types",
-      description: "Learn about variables, strings, numbers, and booleans",
+      description:
+        "Understand variables, strings, numbers, and basic data types in JavaScript.",
       order: 2,
       estimatedTime: 45,
     },
     {
       courseId: createdCourses[0].courseId,
       title: "Functions and Scope",
-      description: "Understanding functions and variable scope",
+      description:
+        "Learn how to create and use functions, and understand variable scope.",
       order: 3,
       estimatedTime: 60,
     },
@@ -199,399 +176,177 @@ async function main() {
     {
       courseId: createdCourses[1].courseId,
       title: "React Hooks Deep Dive",
-      description: "Master useState, useEffect, and custom hooks",
+      description: "Master useState, useEffect, and custom hooks in React.",
       order: 1,
       estimatedTime: 90,
     },
     {
       courseId: createdCourses[1].courseId,
       title: "Context API and State Management",
-      description: "Learn React Context for global state management",
+      description:
+        "Learn advanced state management patterns in React applications.",
       order: 2,
       estimatedTime: 75,
     },
-    // UI/UX Design lessons
-    {
-      courseId: createdCourses[2].courseId,
-      title: "Design Principles",
-      description: "Basic principles of good design",
-      order: 1,
-      estimatedTime: 45,
-    },
-    {
-      courseId: createdCourses[2].courseId,
-      title: "User Research Methods",
-      description: "How to conduct effective user research",
-      order: 2,
-      estimatedTime: 60,
-    },
     // Digital Marketing lessons
     {
-      courseId: createdCourses[3].courseId,
-      title: "Introduction to Digital Marketing",
-      description: "Overview of digital marketing landscape and strategies",
-      order: 1,
-      estimatedTime: 40,
-    },
-    {
-      courseId: createdCourses[3].courseId,
+      courseId: createdCourses[2].courseId,
       title: "SEO Fundamentals",
-      description: "Search Engine Optimization basics and best practices",
+      description:
+        "Learn search engine optimization basics and keyword research.",
+      order: 1,
+      estimatedTime: 60,
+    },
+    {
+      courseId: createdCourses[2].courseId,
+      title: "Social Media Strategy",
+      description: "Develop effective social media marketing campaigns.",
       order: 2,
-      estimatedTime: 50,
+      estimatedTime: 45,
+    },
+    // UI/UX Design lessons
+    {
+      courseId: createdCourses[3].courseId,
+      title: "Design Principles",
+      description: "Learn fundamental design principles and visual hierarchy.",
+      order: 1,
+      estimatedTime: 60,
     },
     {
       courseId: createdCourses[3].courseId,
-      title: "Social Media Marketing",
-      description: "Creating effective social media campaigns",
-      order: 3,
-      estimatedTime: 45,
+      title: "User Research Methods",
+      description:
+        "Understand user research techniques and persona development.",
+      order: 2,
+      estimatedTime: 90,
     },
     // Business Finance lessons
     {
       courseId: createdCourses[4].courseId,
-      title: "Financial Statements Overview",
+      title: "Financial Statements",
       description:
-        "Understanding balance sheets, income statements, and cash flow",
+        "Learn to read and analyze balance sheets, income statements, and cash flow.",
       order: 1,
-      estimatedTime: 35,
+      estimatedTime: 75,
     },
     {
       courseId: createdCourses[4].courseId,
-      title: "Budgeting and Forecasting",
-      description: "Creating budgets and financial projections",
+      title: "Budget Planning",
+      description: "Master budget creation and financial planning techniques.",
       order: 2,
-      estimatedTime: 40,
-    },
-    {
-      courseId: createdCourses[4].courseId,
-      title: "Financial Analysis Tools",
-      description: "Ratio analysis and financial metrics",
-      order: 3,
-      estimatedTime: 45,
+      estimatedTime: 60,
     },
   ];
 
-  console.log("Creating lessons...");
   const createdLessons = [];
   for (const lessonData of lessons) {
     const lesson = await prisma.lesson.create({
       data: lessonData,
     });
     createdLessons.push(lesson);
-    console.log(
-      `Created lesson: ${lesson.title} for course ${lesson.courseId}`,
-    );
-  }
-
-  // Create course enrollments
-  const enrollments = [
-    {
-      studentId: student1.id,
-      courseId: createdCourses[0].courseId,
-    },
-    {
-      studentId: student1.id,
-      courseId: createdCourses[2].courseId,
-    },
-    {
-      studentId: student2.id,
-      courseId: createdCourses[0].courseId,
-    },
-    {
-      studentId: student2.id,
-      courseId: createdCourses[1].courseId,
-    },
-    {
-      studentId: student3.id,
-      courseId: createdCourses[3].courseId,
-    },
-    // Add enrollments for Digital Marketing and Business Finance
-    {
-      studentId: student1.id,
-      courseId: createdCourses[3].courseId,
-    },
-    {
-      studentId: student2.id,
-      courseId: createdCourses[3].courseId,
-    },
-    {
-      studentId: student1.id,
-      courseId: createdCourses[4].courseId,
-    },
-    {
-      studentId: student2.id,
-      courseId: createdCourses[4].courseId,
-    },
-  ];
-
-  console.log("Creating course enrollments...");
-  const createdEnrollments = [];
-  for (const enrollmentData of enrollments) {
-    const enrollment = await prisma.courseEnrollment.create({
-      data: enrollmentData,
-    });
-    createdEnrollments.push(enrollment);
-    console.log(
-      `Created enrollment: Student ${enrollmentData.studentId} in course ${enrollmentData.courseId}`,
-    );
-  }
-
-  // Create lesson completions
-  console.log("Creating lesson completions...");
-
-  // Student 1 completes 2 lessons in JavaScript Fundamentals
-  const jsEnrollment1 = createdEnrollments.find(
-    (e) =>
-      e.studentId === student1.id && e.courseId === createdCourses[0].courseId,
-  );
-  if (jsEnrollment1) {
-    const jsLessons = createdLessons
-      .filter((l) => l.courseId === createdCourses[0].courseId)
-      .slice(0, 2);
-    for (const lesson of jsLessons) {
-      await prisma.lessonCompletion.create({
-        data: {
-          enrollment: {
-            connect: { enrollmentId: jsEnrollment1.enrollmentId },
-          },
-          lesson: {
-            connect: { lessonId: lesson.lessonId },
-          },
-        },
-      });
-      console.log(`Student 1 completed lesson: ${lesson.title}`);
-    }
-  }
-
-  // Student 1 completes 1 lesson in UI/UX Design
-  const designEnrollment1 = createdEnrollments.find(
-    (e) =>
-      e.studentId === student1.id && e.courseId === createdCourses[2].courseId,
-  );
-  if (designEnrollment1) {
-    const designLessons = createdLessons
-      .filter((l) => l.courseId === createdCourses[2].courseId)
-      .slice(0, 1);
-    for (const lesson of designLessons) {
-      await prisma.lessonCompletion.create({
-        data: {
-          enrollment: {
-            connect: { enrollmentId: designEnrollment1.enrollmentId },
-          },
-          lesson: {
-            connect: { lessonId: lesson.lessonId },
-          },
-        },
-      });
-      console.log(`Student 1 completed lesson: ${lesson.title}`);
-    }
-  }
-
-  // Student 2 completes 3 lessons in JavaScript Fundamentals
-  const jsEnrollment2 = createdEnrollments.find(
-    (e) =>
-      e.studentId === student2.id && e.courseId === createdCourses[0].courseId,
-  );
-  if (jsEnrollment2) {
-    const jsLessons = createdLessons
-      .filter((l) => l.courseId === createdCourses[0].courseId)
-      .slice(0, 3);
-    for (const lesson of jsLessons) {
-      await prisma.lessonCompletion.create({
-        data: {
-          enrollment: {
-            connect: { enrollmentId: jsEnrollment2.enrollmentId },
-          },
-          lesson: {
-            connect: { lessonId: lesson.lessonId },
-          },
-        },
-      });
-      console.log(`Student 2 completed lesson: ${lesson.title}`);
-    }
-  }
-
-  // Student 1 completes 1 lesson in Digital Marketing
-  const marketingEnrollment1 = createdEnrollments.find(
-    (e) =>
-      e.studentId === student1.id && e.courseId === createdCourses[3].courseId,
-  );
-  if (marketingEnrollment1) {
-    const marketingLessons = createdLessons
-      .filter((l) => l.courseId === createdCourses[3].courseId)
-      .slice(0, 1);
-    for (const lesson of marketingLessons) {
-      await prisma.lessonCompletion.create({
-        data: {
-          enrollment: {
-            connect: { enrollmentId: marketingEnrollment1.enrollmentId },
-          },
-          lesson: {
-            connect: { lessonId: lesson.lessonId },
-          },
-        },
-      });
-      console.log(`Student 1 completed lesson: ${lesson.title}`);
-    }
-  }
-
-  // Student 1 completes 2 lessons in Business Finance
-  const financeEnrollment1 = createdEnrollments.find(
-    (e) =>
-      e.studentId === student1.id && e.courseId === createdCourses[4].courseId,
-  );
-  if (financeEnrollment1) {
-    const financeLessons = createdLessons
-      .filter((l) => l.courseId === createdCourses[4].courseId)
-      .slice(0, 2);
-    for (const lesson of financeLessons) {
-      await prisma.lessonCompletion.create({
-        data: {
-          enrollment: {
-            connect: { enrollmentId: financeEnrollment1.enrollmentId },
-          },
-          lesson: {
-            connect: { lessonId: lesson.lessonId },
-          },
-        },
-      });
-      console.log(`Student 1 completed lesson: ${lesson.title}`);
-    }
-  }
-
-  // Student 2 completes 1 lesson in Business Finance
-  const financeEnrollment2 = createdEnrollments.find(
-    (e) =>
-      e.studentId === student2.id && e.courseId === createdCourses[4].courseId,
-  );
-  if (financeEnrollment2) {
-    const financeLessons = createdLessons
-      .filter((l) => l.courseId === createdCourses[4].courseId)
-      .slice(0, 1);
-    for (const lesson of financeLessons) {
-      await prisma.lessonCompletion.create({
-        data: {
-          enrollment: {
-            connect: { enrollmentId: financeEnrollment2.enrollmentId },
-          },
-          lesson: {
-            connect: { lessonId: lesson.lessonId },
-          },
-        },
-      });
-      console.log(`Student 2 completed lesson: ${lesson.title}`);
-    }
-  }
-
-  // Create course ratings
-  const ratings = [
-    {
-      courseId: createdCourses[0].courseId,
-      studentId: student1.id,
-      rating: 4.5,
-      review: "Great course for beginners! Very clear explanations.",
-    },
-    {
-      courseId: createdCourses[0].courseId,
-      studentId: student2.id,
-      rating: 5.0,
-      review: "Excellent course! I learned so much about JavaScript.",
-    },
-    {
-      courseId: createdCourses[2].courseId,
-      studentId: student1.id,
-      rating: 4.0,
-      review: "Good introduction to design principles.",
-    },
-    // Add ratings for Digital Marketing and Business Finance
-    {
-      courseId: createdCourses[3].courseId,
-      studentId: student1.id,
-      rating: 4.2,
-      review: "Great digital marketing course with practical examples.",
-    },
-    {
-      courseId: createdCourses[4].courseId,
-      studentId: student1.id,
-      rating: 4.5,
-      review: "Excellent finance course, very comprehensive and clear.",
-    },
-    {
-      courseId: createdCourses[4].courseId,
-      studentId: student2.id,
-      rating: 4.3,
-      review: "Good course for understanding business finance basics.",
-    },
-  ];
-
-  console.log("Creating course ratings...");
-  for (const ratingData of ratings) {
-    const rating = await prisma.courseRating.create({
-      data: ratingData,
-    });
-    console.log(
-      `Created rating: ${rating.rating} stars for course ${rating.courseId}`,
-    );
+    console.log(`Created lesson: ${lesson.title}`);
   }
 
   // Create assignments
+  console.log("Creating assignments...");
   const assignments = [
     {
       courseId: createdCourses[0].courseId,
-      title: "JavaScript Calculator",
+      lessonId: createdLessons[0].lessonId,
+      title: "Hello World Program",
       description:
-        "Build a simple calculator using JavaScript functions and DOM manipulation.",
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        "Create your first JavaScript program that displays 'Hello, World!' in the console.",
       points: 100,
+      rubricUrl: "https://example.com/rubric1",
     },
     {
       courseId: createdCourses[0].courseId,
-      title: "Todo List App",
+      lessonId: createdLessons[1].lessonId,
+      title: "Variable Calculator",
       description:
-        "Create a todo list application with add, delete, and mark complete functionality.",
-      dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+        "Build a simple calculator using variables and basic arithmetic operations.",
       points: 150,
+      rubricUrl: "https://example.com/rubric2",
+    },
+    {
+      courseId: createdCourses[0].courseId,
+      lessonId: createdLessons[2].lessonId,
+      title: "Function Library",
+      description:
+        "Create a collection of utility functions for common mathematical operations.",
+      points: 200,
+      rubricUrl: "https://example.com/rubric3",
+    },
+    {
+      courseId: createdCourses[1].courseId,
+      lessonId: createdLessons[3].lessonId,
+      title: "Custom Hook Implementation",
+      description:
+        "Build a custom React hook for form validation and state management.",
+      points: 250,
+      rubricUrl: "https://example.com/rubric4",
+    },
+    {
+      courseId: createdCourses[1].courseId,
+      lessonId: createdLessons[4].lessonId,
+      title: "Context Provider",
+      description:
+        "Implement a React context provider for global state management.",
+      points: 300,
+      rubricUrl: "https://example.com/rubric5",
     },
     {
       courseId: createdCourses[2].courseId,
-      title: "Design Portfolio",
-      description:
-        "Design a portfolio website following the principles learned in class.",
-      dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), // 10 days from now
-      points: 200,
-    },
-    // Digital Marketing assignments
-    {
-      courseId: createdCourses[3].courseId,
+      lessonId: createdLessons[5].lessonId,
       title: "SEO Audit Report",
       description:
-        "Conduct an SEO audit of a website and provide recommendations.",
-      dueDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000), // 12 days from now
-      points: 120,
+        "Conduct a comprehensive SEO audit of a website and provide recommendations.",
+      points: 200,
+      rubricUrl: "https://example.com/rubric6",
+    },
+    {
+      courseId: createdCourses[2].courseId,
+      lessonId: createdLessons[6].lessonId,
+      title: "Social Media Campaign",
+      description:
+        "Design and plan a complete social media marketing campaign.",
+      points: 250,
+      rubricUrl: "https://example.com/rubric7",
     },
     {
       courseId: createdCourses[3].courseId,
-      title: "Social Media Campaign",
+      lessonId: createdLessons[7].lessonId,
+      title: "Design System",
       description:
-        "Create a social media marketing campaign for a product or service.",
-      dueDate: new Date(Date.now() + 16 * 24 * 60 * 60 * 1000), // 16 days from now
-      points: 180,
-    },
-    // Business Finance assignments
-    {
-      courseId: createdCourses[4].courseId,
-      title: "Financial Statement Analysis",
-      description: "Analyze financial statements and provide insights.",
-      dueDate: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000), // 9 days from now
-      points: 150,
+        "Create a comprehensive design system with components and guidelines.",
+      points: 300,
+      rubricUrl: "https://example.com/rubric8",
     },
     {
+      courseId: createdCourses[3].courseId,
+      lessonId: createdLessons[8].lessonId,
+      title: "User Research Report",
+      description:
+        "Conduct user interviews and create a detailed research report.",
+      points: 250,
+      rubricUrl: "https://example.com/rubric9",
+    },
+    {
       courseId: createdCourses[4].courseId,
+      lessonId: createdLessons[9].lessonId,
+      title: "Financial Analysis",
+      description:
+        "Analyze financial statements and provide business recommendations.",
+      points: 300,
+      rubricUrl: "https://example.com/rubric10",
+    },
+    {
+      courseId: createdCourses[4].courseId,
+      lessonId: createdLessons[10].lessonId,
       title: "Budget Creation",
       description: "Create a comprehensive budget for a business scenario.",
-      dueDate: new Date(Date.now() + 13 * 24 * 60 * 60 * 1000), // 13 days from now
-      points: 160,
+      points: 250,
+      rubricUrl: "https://example.com/rubric11",
     },
   ];
 
@@ -605,34 +360,77 @@ async function main() {
     console.log(`Created assignment: ${assignment.title}`);
   }
 
-  // Create assignment submissions
+  // Assignment submissions are now handled through AssignmentSubmission model
+  console.log(
+    "Skipping assignment submissions - using AssignmentSubmission instead",
+  );
+
+  // Create assignment submissions for enrolled students
   const submissions = [
+    // Student 1 assignments
     {
-      assignmentId: createdAssignments[0].assignmentId,
       studentId: student1.id,
-      status: "submitted" as const,
-      submittedAt: new Date(),
-      grade: 95.0,
-      feedback:
-        "Excellent work! Great use of functions and clean code structure.",
-    },
-    {
       assignmentId: createdAssignments[0].assignmentId,
-      studentId: student2.id,
-      status: "submitted" as const,
-      submittedAt: new Date(),
+      status: "completed",
+      assignedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      startedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000), // 12 days ago
+      endedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
       grade: 88.0,
       feedback: "Good work! Consider adding input validation next time.",
     },
     {
-      assignmentId: createdAssignments[1].assignmentId,
       studentId: student1.id,
-      status: "in_progress" as const,
+      assignmentId: createdAssignments[1].assignmentId,
+      status: "in_progress",
+      assignedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      startedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     },
     {
-      assignmentId: createdAssignments[2].assignmentId,
       studentId: student1.id,
-      status: "not_started" as const,
+      assignmentId: createdAssignments[2].assignmentId,
+      status: "not_started",
+      assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    },
+    // Student 2 assignments
+    {
+      studentId: student2.id,
+      assignmentId: createdAssignments[0].assignmentId,
+      status: "completed",
+      assignedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      startedAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000),
+      endedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      grade: 92.0,
+      feedback: "Excellent work! Very thorough implementation.",
+    },
+    {
+      studentId: student2.id,
+      assignmentId: createdAssignments[1].assignmentId,
+      status: "completed",
+      assignedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      startedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
+      endedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+      grade: 95.0,
+      feedback: "Outstanding work! Great problem-solving approach.",
+    },
+    // Student 1 in Advanced React course
+    {
+      studentId: student1.id,
+      assignmentId: createdAssignments[3].assignmentId,
+      status: "not_started",
+      assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000), // 45 days from now
+    },
+    {
+      studentId: student1.id,
+      assignmentId: createdAssignments[4].assignmentId,
+      status: "not_started",
+      assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
     },
   ];
 
@@ -646,125 +444,121 @@ async function main() {
     );
   }
 
-  // Create given assignments for enrolled students
-  const givenAssignments = [
-    // Student 1 assignments
+  // Create course enrollments
+  console.log("Creating course enrollments...");
+  const enrollments = [
     {
       studentId: student1.id,
       courseId: createdCourses[0].courseId, // JavaScript Fundamentals
-      assignmentId: createdAssignments[0].assignmentId,
-      lessonId: createdLessons[0].lessonId,
-      status: "completed" as const,
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-      grade: 88.0,
-      feedback: "Good work! Consider adding input validation next time.",
-      notes: "Completed early, good understanding of concepts",
-      assignedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
-      startedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000), // 12 days ago
-      completedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
     },
-    {
-      studentId: student1.id,
-      courseId: createdCourses[0].courseId,
-      assignmentId: createdAssignments[1].assignmentId,
-      lessonId: createdLessons[1].lessonId,
-      status: "in_progress" as const,
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      notes: "Working on advanced concepts",
-      assignedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-      startedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    },
-    {
-      studentId: student1.id,
-      courseId: createdCourses[0].courseId,
-      assignmentId: createdAssignments[2].assignmentId,
-      lessonId: createdLessons[2].lessonId,
-      status: "not_started" as const,
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    },
-    // Student 2 assignments
-    {
-      studentId: student2.id,
-      courseId: createdCourses[0].courseId,
-      assignmentId: createdAssignments[0].assignmentId,
-      lessonId: createdLessons[0].lessonId,
-      status: "completed" as const,
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      grade: 92.0,
-      feedback: "Excellent work! Very thorough implementation.",
-      notes: "Great attention to detail",
-      assignedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
-      startedAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000),
-      completedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-    },
-    {
-      studentId: student2.id,
-      courseId: createdCourses[0].courseId,
-      assignmentId: createdAssignments[1].assignmentId,
-      lessonId: createdLessons[1].lessonId,
-      status: "submitted" as const,
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      notes: "Submitted for review",
-      assignedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
-      startedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
-    },
-    // Student 1 in Advanced React course
     {
       studentId: student1.id,
       courseId: createdCourses[1].courseId, // Advanced React
-      assignmentId: createdAssignments[3].assignmentId,
-      lessonId: createdLessons[3].lessonId,
-      status: "not_started" as const,
-      dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000), // 45 days from now
-      assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
     },
     {
-      studentId: student1.id,
-      courseId: createdCourses[1].courseId,
-      assignmentId: createdAssignments[4].assignmentId,
-      lessonId: createdLessons[4].lessonId,
-      status: "not_started" as const,
-      dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
-      assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      studentId: student2.id,
+      courseId: createdCourses[0].courseId, // JavaScript Fundamentals
+    },
+    {
+      studentId: student2.id,
+      courseId: createdCourses[2].courseId, // Digital Marketing
     },
   ];
 
-  console.log("Creating given assignments...");
-  for (const givenAssignmentData of givenAssignments) {
-    const givenAssignment = await prisma.givenAssignment.create({
-      data: givenAssignmentData,
+  const createdEnrollments = [];
+  for (const enrollmentData of enrollments) {
+    const enrollment = await prisma.courseEnrollment.create({
+      data: enrollmentData,
+    });
+    createdEnrollments.push(enrollment);
+    console.log(
+      `Created enrollment: Student ${enrollment.studentId} in course ${enrollment.courseId}`,
+    );
+  }
+
+  // Create lesson completions
+  console.log("Creating lesson completions...");
+  const lessonCompletions = [
+    {
+      enrollmentId: createdEnrollments[0].enrollmentId, // Student 1 in JavaScript
+      lessonId: createdLessons[0].lessonId,
+    },
+    {
+      enrollmentId: createdEnrollments[0].enrollmentId,
+      lessonId: createdLessons[1].lessonId,
+    },
+    {
+      enrollmentId: createdEnrollments[2].enrollmentId, // Student 2 in JavaScript
+      lessonId: createdLessons[0].lessonId,
+    },
+    {
+      enrollmentId: createdEnrollments[2].enrollmentId,
+      lessonId: createdLessons[1].lessonId,
+    },
+  ];
+
+  for (const completionData of lessonCompletions) {
+    const completion = await prisma.lessonCompletion.create({
+      data: completionData,
     });
     console.log(
-      `Created given assignment: ${givenAssignment.status} for student ${givenAssignment.studentId} in course ${givenAssignment.courseId}`,
+      `Created lesson completion: Lesson ${completion.lessonId} for enrollment ${completion.enrollmentId}`,
+    );
+  }
+
+  // Create course ratings
+  console.log("Creating course ratings...");
+  const ratings = [
+    {
+      courseId: createdCourses[0].courseId,
+      studentId: student1.id,
+      rating: 4.5,
+      review: "Great course! Very well structured and easy to follow.",
+    },
+    {
+      courseId: createdCourses[0].courseId,
+      studentId: student2.id,
+      rating: 4.8,
+      review: "Excellent content and practical examples.",
+    },
+    {
+      courseId: createdCourses[2].courseId,
+      studentId: student2.id,
+      rating: 4.2,
+      review: "Good overview of digital marketing concepts.",
+    },
+  ];
+
+  for (const ratingData of ratings) {
+    const rating = await prisma.courseRating.create({
+      data: ratingData,
+    });
+    console.log(
+      `Created rating: ${rating.rating} stars for course ${rating.courseId}`,
     );
   }
 
   // Create achievements
+  console.log("Creating achievements...");
   const achievements = [
     {
       studentId: student1.id,
-      badgeType: "first_course" as const,
+      badgeType: "first_course",
     },
     {
       studentId: student1.id,
-      badgeType: "seven_day_streak" as const,
-    },
-    {
-      studentId: student1.id,
-      badgeType: "high_scorer" as const,
+      badgeType: "seven_day_streak",
     },
     {
       studentId: student2.id,
-      badgeType: "first_course" as const,
+      badgeType: "high_scorer",
     },
     {
       studentId: student2.id,
-      badgeType: "early_bird" as const,
+      badgeType: "course_completer",
     },
   ];
 
-  console.log("Creating achievements...");
   for (const achievementData of achievements) {
     const achievement = await prisma.achievement.create({
       data: achievementData,
@@ -774,43 +568,42 @@ async function main() {
     );
   }
 
-  // Create quiz submissions
-  const quizSubmissions = [
+  // Create progress summaries
+  console.log("Creating progress summaries...");
+  const progressSummaries = [
     {
-      quizId: "quiz_js_basics",
-      studentId: student1.id,
-      score: 95.0,
+      userId: student1.id,
+      totalCoursesEnrolled: 2,
+      totalLessonsCompleted: 2,
+      totalAssignmentsCompleted: 1,
+      averageGrade: 88.0,
+      totalStudyTime: 180, // 3 hours
     },
     {
-      quizId: "quiz_js_basics",
-      studentId: student2.id,
-      score: 87.0,
-    },
-    {
-      quizId: "quiz_design_principles",
-      studentId: student1.id,
-      score: 92.0,
+      userId: student2.id,
+      totalCoursesEnrolled: 2,
+      totalLessonsCompleted: 2,
+      totalAssignmentsCompleted: 2,
+      averageGrade: 93.5,
+      totalStudyTime: 240, // 4 hours
     },
   ];
 
-  console.log("Creating quiz submissions...");
-  for (const quizData of quizSubmissions) {
-    const quiz = await prisma.quizSubmission.create({
-      data: quizData,
+  for (const summaryData of progressSummaries) {
+    const summary = await prisma.progressSummary.create({
+      data: summaryData,
     });
-    console.log(
-      `Created quiz submission: Score ${quiz.score} for quiz ${quiz.quizId}`,
-    );
+    console.log(`Created progress summary for user ${summary.userId}`);
   }
 
-  console.log("✅ E-learning platform database seeded successfully!");
+  console.log("Database seeding completed successfully!");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Error seeding database:", e);
+    console.error("Error during seeding:", e);
     process.exit(1);
   })
-  .finally(() => {
-    void prisma.$disconnect();
+  .finally(async () => {
+    await prisma.$disconnect();
   });

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { SubmissionStatus } from "@/types";
-import { prisma } from "@/server/db";
+import { db } from "@/server/db";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,13 +16,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify assignment exists
-    const assignment = await prisma.assignment.findUnique({
+    const assignment = await db.assignment.findUnique({
       where: { assignmentId },
       select: {
         assignmentId: true,
         courseId: true,
         title: true,
-        dueDate: true,
       },
     });
 
@@ -35,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify student exists
-    const student = await prisma.user.findFirst({
+    const student = await db.user.findFirst({
       where: {
         id: studentId,
         role: "student",
@@ -50,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if student is enrolled in the course
-    const enrollment = await prisma.courseEnrollment.findFirst({
+    const enrollment = await db.courseEnrollment.findFirst({
       where: {
         studentId,
         courseId: assignment.courseId,
@@ -64,8 +62,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if submission already exists
-    const existingSubmission = await prisma.assignmentSubmission.findUnique({
+    // Check if AssignmentSubmission record exists
+    const existingSubmission = await db.assignmentSubmission.findUnique({
       where: {
         studentId_assignmentId: {
           studentId,
@@ -76,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     if (existingSubmission) {
       // Update existing submission
-      const updatedSubmission = await prisma.assignmentSubmission.update({
+      const updatedSubmission = await db.assignmentSubmission.update({
         where: {
           studentId_assignmentId: {
             studentId,
@@ -84,19 +82,15 @@ export async function POST(request: NextRequest) {
           },
         },
         data: {
-          status: SubmissionStatus.SUBMITTED,
-          submittedAt: new Date(),
-          fileUrl: fileUrl || existingSubmission.fileUrl,
-          rubricUrl: rubricUrl || existingSubmission.rubricUrl,
+          status: "completed",
+          endedAt: new Date(),
         },
         select: {
           submissionId: true,
           assignmentId: true,
           studentId: true,
           status: true,
-          submittedAt: true,
-          fileUrl: true,
-          rubricUrl: true,
+          endedAt: true,
         },
       });
 
@@ -106,24 +100,22 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create new submission
-    const submission = await prisma.assignmentSubmission.create({
+    // Create new AssignmentSubmission record if it doesn't exist
+    const submission = await db.assignmentSubmission.create({
       data: {
         assignmentId,
         studentId,
-        status: SubmissionStatus.SUBMITTED,
-        submittedAt: new Date(),
-        fileUrl,
-        rubricUrl,
+        status: "completed",
+        assignedAt: new Date(),
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default due date
+        endedAt: new Date(),
       },
       select: {
         submissionId: true,
         assignmentId: true,
         studentId: true,
         status: true,
-        submittedAt: true,
-        fileUrl: true,
-        rubricUrl: true,
+        endedAt: true,
       },
     });
 

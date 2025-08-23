@@ -31,9 +31,9 @@ export default async function AssignmentDetailsPage({
   }
 
   // Fetch assignment details with all related data
-  const assignment = await db.givenAssignment.findUnique({
+  const assignment = await db.assignmentSubmission.findUnique({
     where: {
-      givenAssignmentId: resolvedParams.assignmentId,
+      submissionId: resolvedParams.assignmentId,
       studentId: session.user.id, // Ensure user can only see their own assignments
     },
     include: {
@@ -42,8 +42,6 @@ export default async function AssignmentDetailsPage({
           course: true,
         },
       },
-      course: true,
-      lesson: true,
       student: {
         select: {
           firstName: true,

@@ -11,7 +11,33 @@ import {
 } from "lucide-react";
 
 interface AssignmentDetailsProps {
-  assignment: any; // Using any for now to avoid complex Prisma types
+  assignment: {
+    submissionId: string;
+    assignmentId: string;
+    studentId: string;
+    startedAt?: Date;
+    endedAt?: Date;
+    grade?: number;
+    feedback?: string;
+    assignedAt: Date;
+    dueDate: Date;
+    status: string;
+    assignment: {
+      title: string;
+      description: string;
+      points: number;
+      course: {
+        title: string;
+        category: string;
+        difficultyLevel: string;
+      };
+    };
+    student: {
+      firstName: string;
+      lastName: string;
+      username: string;
+    };
+  };
 }
 
 function getStatusBadge(status: string) {
@@ -161,40 +187,27 @@ export function AssignmentDetails({ assignment }: AssignmentDetailsProps) {
           </div>
         </div>
 
-        {/* Lesson Information */}
-        {assignment.lesson && (
-          <div className="rounded-lg bg-white p-6 shadow-sm">
-            <div className="mb-4 flex items-center">
-              <FileText className="mr-2 h-5 w-5 text-green-600" />
-              <h3 className="text-lg font-semibold text-gray-900">
-                Related Lesson
-              </h3>
+        {/* Assignment Information */}
+        <div className="rounded-lg bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center">
+            <FileText className="mr-2 h-5 w-5 text-green-600" />
+            <h3 className="text-lg font-semibold text-gray-900">
+              Assignment Details
+            </h3>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm font-medium text-gray-500">Assignment ID</p>
+              <p className="text-gray-900">{assignment.assignmentId}</p>
             </div>
 
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Lesson Title
-                </p>
-                <p className="text-gray-900">{assignment.lesson.title}</p>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-gray-500">Description</p>
-                <p className="text-gray-900">{assignment.lesson.description}</p>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Estimated Time
-                </p>
-                <p className="text-gray-900">
-                  {assignment.lesson.estimatedTime} minutes
-                </p>
-              </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Submission ID</p>
+              <p className="text-gray-900">{assignment.submissionId}</p>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Progress and Timeline */}
@@ -239,7 +252,7 @@ export function AssignmentDetails({ assignment }: AssignmentDetailsProps) {
           )}
 
           {/* Completed */}
-          {assignment.completedAt && (
+          {assignment.endedAt && (
             <div className="flex items-center">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
                 <Award className="h-4 w-4 text-green-600" />
@@ -247,8 +260,8 @@ export function AssignmentDetails({ assignment }: AssignmentDetailsProps) {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-900">Completed</p>
                 <p className="text-sm text-gray-500">
-                  {formatDate(assignment.completedAt)} at{" "}
-                  {formatTime(assignment.completedAt)}
+                  {formatDate(assignment.endedAt)} at{" "}
+                  {formatTime(assignment.endedAt)}
                 </p>
               </div>
             </div>
@@ -315,15 +328,6 @@ export function AssignmentDetails({ assignment }: AssignmentDetailsProps) {
               </div>
             )}
           </div>
-
-          {assignment.notes && (
-            <div className="mt-4">
-              <p className="text-sm font-medium text-gray-500">
-                Additional Notes
-              </p>
-              <p className="mt-1 text-gray-900">{assignment.notes}</p>
-            </div>
-          )}
         </div>
       )}
 

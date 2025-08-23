@@ -35,10 +35,11 @@ export enum CourseCategory {
   business = "business",
   marketing = "marketing",
   science = "science",
-  language = "language",
-  music = "music",
-  art = "art",
-  other = "other",
+  humanities = "humanities",
+  technology = "technology",
+  arts = "arts",
+  health = "health",
+  finance = "finance",
 }
 
 export enum DifficultyLevel {
@@ -47,12 +48,8 @@ export enum DifficultyLevel {
   advanced = "advanced",
 }
 
-export enum SubmissionStatus {
-  not_started = "not_started",
-  in_progress = "in_progress",
-  submitted = "submitted",
-  graded = "graded",
-}
+// Assignment status values (used directly as strings)
+// "not_started", "in_progress", "completed", "graded", "overdue"
 
 export enum BadgeType {
   first_course = "first_course",
@@ -125,23 +122,25 @@ export interface CourseRating {
 export interface Assignment {
   assignmentId: string;
   courseId: string;
+  lessonId?: string;
   title: string;
   description: string;
-  dueDate: Date;
   points: number;
+  rubricUrl?: string;
   createdAt: Date;
 }
 
 export interface AssignmentSubmission {
   submissionId: string;
-  assignmentId: string;
   studentId: string;
-  status: SubmissionStatus;
-  submittedAt?: Date;
+  assignmentId: string;
+  startedAt?: Date;
+  endedAt?: Date;
   grade?: number;
   feedback?: string;
-  fileUrl?: string;
-  rubricUrl?: string;
+  assignedAt: Date;
+  dueDate: Date;
+  status: string; // "not_started", "in_progress", "completed", "graded", "overdue"
 }
 
 export interface Achievement {

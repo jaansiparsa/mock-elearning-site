@@ -81,12 +81,13 @@ export default function VerticalCourseCard({
   const totalLessons = course.lessons.length;
   const progressPercent = enrollment.progressPercent;
 
-  const remainingLessons = course.lessons.slice(enrollment.lessonsCompleted);
-  const estimatedTimeRemaining = enrollment.estimatedTimeRemaining;
-
-  const nextLesson = remainingLessons[0];
+  // Find the earliest uncompleted lesson by checking lesson order
+  const sortedLessons = [...course.lessons].sort((a, b) => a.order - b.order);
+  const nextLesson = sortedLessons[enrollment.lessonsCompleted];
   const hasNextLesson =
     nextLesson && enrollment.lessonsCompleted < totalLessons;
+
+  const estimatedTimeRemaining = enrollment.estimatedTimeRemaining;
 
   return (
     <div

@@ -38,6 +38,12 @@ export default async function Navigation() {
                 >
                   Assignments
                 </Link>
+                <Link
+                  href="/analytics"
+                  className="hover:text-brex-orange px-3 py-2 text-sm font-medium text-gray-700 transition-colors"
+                >
+                  Analytics
+                </Link>
               </>
             )}
             <Link

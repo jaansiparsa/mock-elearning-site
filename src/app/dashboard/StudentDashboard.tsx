@@ -1,8 +1,4 @@
-import type {
-  BadgeType,
-  CourseCategory,
-  DifficultyLevel,
-} from "@prisma/client";
+import type { BadgeType, CourseCategory, DifficultyLevel } from "@/types";
 
 import { CourseDashboard } from "@/components/course-dashboard";
 import CourseRecommendations from "./CourseRecommendations";
@@ -64,20 +60,36 @@ async function getStudentData(userId: string) {
       }),
     ]);
 
-    // Simplified progress calculation - just count lessons
-    const enrollmentsWithProgress = enrollments.map((enrollment) => {
-      const totalLessons = enrollment.course.lessons.length;
-      const completedLessons = 0; // Simplified for now
-      const progressPercent = 0; // Simplified for now
-      const estimatedTimeRemaining = 0; // Simplified for now
+    // Calculate progress for each enrollment
+    const enrollmentsWithProgress = await Promise.all(
+      enrollments.map(async (enrollment) => {
+        const totalLessons = enrollment.course.lessons.length;
 
-      return {
-        ...enrollment,
-        progressPercent,
-        estimatedTimeRemaining,
-        lessonsCompleted: completedLessons,
-      };
-    });
+        // Get completed lessons for this enrollment
+        const lessonCompletions = await db.lessonCompletion.findMany({
+          where: {
+            enrollmentId: enrollment.enrollmentId,
+          },
+          select: {
+            lessonId: true,
+          },
+        });
+
+        const completedLessons = lessonCompletions.length;
+        const progressPercent =
+          totalLessons > 0
+            ? Math.round((completedLessons / totalLessons) * 100)
+            : 0;
+        const estimatedTimeRemaining = (totalLessons - completedLessons) * 30; // Assume 30 minutes per lesson
+
+        return {
+          ...enrollment,
+          progressPercent,
+          estimatedTimeRemaining,
+          lessonsCompleted: completedLessons,
+        };
+      }),
+    );
 
     return { user, enrollments: enrollmentsWithProgress, achievements };
   } catch (error) {
@@ -92,22 +104,23 @@ async function getStudentData(userId: string) {
 }
 
 function getCategoryColor(category: CourseCategory) {
-  const colors = {
+  const colors: Record<CourseCategory, string> = {
     programming: "bg-blue-100 text-blue-800",
     design: "bg-purple-100 text-purple-800",
     business: "bg-green-100 text-green-800",
     marketing: "bg-yellow-100 text-yellow-800",
     science: "bg-red-100 text-red-800",
-    language: "bg-indigo-100 text-indigo-800",
-    music: "bg-pink-100 text-pink-800",
-    art: "bg-orange-100 text-orange-800",
-    other: "bg-gray-100 text-gray-800",
+    humanities: "bg-indigo-100 text-indigo-800",
+    technology: "bg-cyan-100 text-cyan-800",
+    arts: "bg-orange-100 text-orange-800",
+    health: "bg-emerald-100 text-emerald-800",
+    finance: "bg-violet-100 text-violet-800",
   };
-  return colors[category] || colors.other;
+  return colors[category];
 }
 
 function getDifficultyColor(difficulty: DifficultyLevel) {
-  const colors = {
+  const colors: Record<DifficultyLevel, string> = {
     beginner: "bg-green-100 text-green-800",
     intermediate: "bg-yellow-100 text-yellow-800",
     advanced: "bg-red-100 text-red-800",

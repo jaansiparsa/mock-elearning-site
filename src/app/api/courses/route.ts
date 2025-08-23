@@ -1,7 +1,7 @@
 import { CourseCategory, DifficultyLevel } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 
-import { prisma } from "@/server/db";
+import { db } from "@/server/db";
 
 export async function GET(request: NextRequest) {
   try {
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     // Get courses with instructor info and stats
     const [courses, totalCount] = await Promise.all([
-      prisma.course.findMany({
+      db.course.findMany({
         where,
         select: {
           courseId: true,
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit,
       }),
-      prisma.course.count({ where }),
+      db.course.count({ where }),
     ]);
 
     // Calculate average ratings

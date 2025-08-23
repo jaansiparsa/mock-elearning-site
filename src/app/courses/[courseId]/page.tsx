@@ -53,7 +53,6 @@ async function getCourseData(courseId: string) {
             assignmentId: true,
             title: true,
             description: true,
-            dueDate: true,
             points: true,
             createdAt: true,
           },
@@ -91,6 +90,10 @@ async function getCourseData(courseId: string) {
     try {
       session = await auth();
       if (session?.user?.id) {
+        console.log(
+          `Fetching enrollment for user ${session.user.id} in course ${courseId}`,
+        );
+
         const userEnrollment = await db.courseEnrollment.findUnique({
           where: {
             studentId_courseId: {
@@ -98,20 +101,31 @@ async function getCourseData(courseId: string) {
               courseId: courseId,
             },
           },
-          include: {
-            lessonCompletions: {
-              select: {
-                lessonId: true,
-              },
-            },
-          },
         });
 
         if (userEnrollment) {
-          completedLessonIds = userEnrollment.lessonCompletions.map(
-            (lc) => lc.lessonId,
+          console.log(
+            `User enrolled, enrollment ID: ${userEnrollment.enrollmentId}`,
           );
+          // Get completed lessons for this user in this course
+          const lessonCompletions = await db.lessonCompletion.findMany({
+            where: {
+              enrollmentId: userEnrollment.enrollmentId,
+            },
+            select: {
+              lessonId: true,
+            },
+          });
+          completedLessonIds = lessonCompletions.map((lc) => lc.lessonId);
+          console.log(
+            `Found ${completedLessonIds.length} completed lessons:`,
+            completedLessonIds,
+          );
+        } else {
+          console.log(`User not enrolled in course ${courseId}`);
         }
+      } else {
+        console.log("No authenticated user session");
       }
     } catch (error) {
       console.error("Error fetching user enrollment:", error);

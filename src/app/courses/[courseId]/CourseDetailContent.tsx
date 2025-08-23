@@ -47,7 +47,6 @@ interface CourseDetailContentProps {
       assignmentId: string;
       title: string;
       description: string;
-      dueDate: Date;
       points: number;
       createdAt: Date;
     }>;

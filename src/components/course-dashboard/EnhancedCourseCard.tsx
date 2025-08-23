@@ -82,9 +82,9 @@ export default function EnhancedCourseCard({
   const progressPercent = enrollment.progressPercent;
   const estimatedTimeRemaining = enrollment.estimatedTimeRemaining;
 
-  const remainingLessons = course.lessons.slice(enrollment.lessonsCompleted);
-
-  const nextLesson = remainingLessons[0];
+  // Find the earliest uncompleted lesson by checking lesson order
+  const sortedLessons = [...course.lessons].sort((a, b) => a.order - b.order);
+  const nextLesson = sortedLessons[enrollment.lessonsCompleted];
   const hasNextLesson =
     nextLesson && enrollment.lessonsCompleted < totalLessons;
 

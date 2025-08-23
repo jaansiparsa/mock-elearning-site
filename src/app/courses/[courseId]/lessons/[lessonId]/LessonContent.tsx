@@ -39,11 +39,15 @@ export default function LessonContent({ lessonData }: LessonContentProps) {
         },
         body: JSON.stringify({
           lessonId: lessonData.lesson.lessonId,
+          courseId: lessonData.lesson.courseId,
         }),
       });
 
       if (response.ok) {
         setIsCompleted(true);
+      } else {
+        const errorData = await response.json();
+        console.error("Error marking lesson complete:", errorData);
       }
     } catch (error) {
       console.error("Error marking lesson complete:", error);

@@ -43,8 +43,8 @@ export async function GET(request: NextRequest) {
 
       // Process each assignment in the course
       for (const assignment of course.assignments) {
-        // Check if there's a GivenAssignment record for this assignment
-        const givenAssignment = await db.givenAssignment.findUnique({
+        // Check if there's an AssignmentSubmission record for this assignment
+        const submission = await db.assignmentSubmission.findUnique({
           where: {
             studentId_assignmentId: {
               studentId: session.user.id,
@@ -54,34 +54,42 @@ export async function GET(request: NextRequest) {
         });
 
         const now = new Date();
-        const dueDate = new Date(assignment.dueDate);
+        const dueDate =
+          submission?.dueDate ||
+          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Default to 30 days from now
         const isOverdue =
-          dueDate < now && givenAssignment?.status !== "completed";
+          dueDate < now &&
+          submission?.status !== "completed" &&
+          submission?.status !== "graded";
         const isDueToday = dueDate.toDateString() === now.toDateString();
         const isDueThisWeek =
           dueDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) &&
           dueDate > now;
 
-        // Map status - use GivenAssignment status if available, otherwise default to "not_started"
-        let uiStatus: "not_started" | "in_progress" | "submitted" | "graded" =
-          "not_started";
+        // Map status - use submission status if available, otherwise default to "not_started"
+        let uiStatus:
+          | "not_started"
+          | "in_progress"
+          | "completed"
+          | "graded"
+          | "overdue" = "not_started";
 
-        if (givenAssignment) {
-          switch (givenAssignment.status) {
+        if (submission) {
+          switch (submission.status) {
             case "not_started":
               uiStatus = "not_started";
               break;
             case "in_progress":
               uiStatus = "in_progress";
               break;
-            case "submitted":
-              uiStatus = "submitted";
-              break;
             case "completed":
+              uiStatus = "completed";
+              break;
+            case "graded":
               uiStatus = "graded";
               break;
             case "overdue":
-              uiStatus = "not_started";
+              uiStatus = "overdue";
               break;
             default:
               uiStatus = "not_started";
@@ -90,22 +98,21 @@ export async function GET(request: NextRequest) {
 
         allAssignments.push({
           assignmentId: assignment.assignmentId,
-          givenAssignmentId: givenAssignment?.givenAssignmentId || null,
+          submissionId: submission?.submissionId || null,
           title: assignment.title,
           description: assignment.description,
-          dueDate: assignment.dueDate,
+          dueDate: dueDate,
           points: assignment.points,
           status: uiStatus,
           courseTitle: course.title,
           courseId: course.courseId,
           lessonTitle: null, // Will be populated if lesson association exists
-          lessonId: givenAssignment?.lessonId || null,
-          grade: givenAssignment?.grade || null,
-          feedback: givenAssignment?.feedback || null,
-          notes: givenAssignment?.notes || null,
-          assignedAt: givenAssignment?.assignedAt || enrollment.enrolledAt,
-          startedAt: givenAssignment?.startedAt || null,
-          completedAt: givenAssignment?.completedAt || null,
+          lessonId: assignment.lessonId || null,
+          grade: submission?.grade || null,
+          feedback: submission?.feedback || null,
+          assignedAt: submission?.assignedAt || enrollment.enrolledAt,
+          startedAt: submission?.startedAt || null,
+          completedAt: submission?.endedAt || null,
           isOverdue,
           isDueToday,
           isDueThisWeek,
@@ -160,11 +167,11 @@ export async function GET(request: NextRequest) {
     // Calculate overview stats
     const totalAssignments = allAssignments.length;
     const completedAssignments = allAssignments.filter(
-      (a) => a.status === "graded",
+      (a) => a.status === "graded" || a.status === "completed",
     ).length;
     const overdueAssignments = allAssignments.filter((a) => a.isOverdue).length;
     const upcomingAssignments = allAssignments.filter(
-      (a) => !a.isOverdue && a.status !== "graded",
+      (a) => !a.isOverdue && a.status !== "graded" && a.status !== "completed",
     ).length;
 
     const courses = Array.from(coursesMap.values());

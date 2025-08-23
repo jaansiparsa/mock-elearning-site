@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { prisma } from "@/server/db";
+import { db } from "@/server/db";
 
 export async function POST(
   request: NextRequest,
@@ -67,7 +67,7 @@ export async function POST(
     }
 
     // Create lesson
-    const lesson = await prisma.lesson.create({
+    const lesson = await db.lesson.create({
       data: {
         courseId,
         title,

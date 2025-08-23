@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { prisma } from "@/server/db";
+import { db } from "@/server/db";
 
 export async function GET(
   request: NextRequest,
@@ -10,7 +10,7 @@ export async function GET(
     const { userId } = params;
 
     // Get user profile with learning statistics
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
       select: {
         id: true,

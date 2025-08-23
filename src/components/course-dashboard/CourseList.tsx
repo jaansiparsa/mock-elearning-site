@@ -90,14 +90,15 @@ export default function CourseList({
         const totalLessons = enrollment.course.lessons.length;
         const progressPercent = enrollment.progressPercent;
 
-        const remainingLessons = enrollment.course.lessons.slice(
-          enrollment.lessonsCompleted,
+        // Find the earliest uncompleted lesson by checking lesson order
+        const sortedLessons = [...enrollment.course.lessons].sort(
+          (a, b) => a.order - b.order,
         );
-        const estimatedTimeRemaining = enrollment.estimatedTimeRemaining;
-
-        const nextLesson = remainingLessons[0];
+        const nextLesson = sortedLessons[enrollment.lessonsCompleted];
         const hasNextLesson =
           nextLesson && enrollment.lessonsCompleted < totalLessons;
+
+        const estimatedTimeRemaining = enrollment.estimatedTimeRemaining;
 
         // Calculate average rating
         const averageRating =

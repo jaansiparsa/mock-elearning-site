@@ -22,11 +22,18 @@ interface CourseHeaderProps {
       username: string;
       avatarUrl?: string;
     };
+    lessons: Array<{
+      lessonId: string;
+      title: string;
+      order: number;
+      estimatedTime: number;
+    }>;
     totalLessons: number;
     totalTime: number;
     totalEnrollments: number;
     totalAssignments: number;
     isEnrolled: boolean;
+    completedLessonIds?: string[];
   };
 }
 
@@ -75,17 +82,50 @@ export default function CourseHeader({ course }: CourseHeaderProps) {
   const [isEnrolled, setIsEnrolled] = useState(course.isEnrolled);
   const router = useRouter();
 
+  // Calculate next lesson for enrolled users
+  const getNextLesson = () => {
+    if (!course.lessons || !course.completedLessonIds) return null;
+
+    // Sort lessons by order
+    const sortedLessons = [...course.lessons].sort((a, b) => a.order - b.order);
+
+    // Find the first lesson that hasn't been completed
+    const nextLesson = sortedLessons.find(
+      (lesson) => !course.completedLessonIds!.includes(lesson.lessonId),
+    );
+
+    return nextLesson;
+  };
+
+  const nextLesson = getNextLesson();
+  const hasNextLesson =
+    nextLesson &&
+    course.completedLessonIds &&
+    course.completedLessonIds.length < course.totalLessons;
+
   const checkAuthAndRedirect = async (): Promise<boolean> => {
     try {
+      console.log("Checking authentication...");
       // Check if user is authenticated by trying to access a protected API
       const response = await fetch("/api/auth/check", { method: "GET" });
+      console.log("Auth check response status:", response.status);
+      console.log("Auth check response ok:", response.ok);
+
       if (!response.ok) {
+        console.log("User is not authenticated, redirecting to login");
         // User is not authenticated, redirect to login
         router.push("/auth/signin");
         return false;
       }
+
+      const authData = (await response.json()) as {
+        authenticated: boolean;
+        user: { id: string; email: string };
+      };
+      console.log("Auth check successful:", authData);
       return true;
-    } catch {
+    } catch (error) {
+      console.error("Error occurred during auth check:", error);
       // Error occurred, redirect to login
       router.push("/auth/signin");
       return false;
@@ -93,26 +133,61 @@ export default function CourseHeader({ course }: CourseHeaderProps) {
   };
 
   const handleEnroll = async () => {
+    console.log("Enroll button clicked for course:", course.courseId);
+
     // Check authentication first
     const isAuthenticated = await checkAuthAndRedirect();
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      console.log("User not authenticated, redirecting to login");
+      return;
+    }
 
+    console.log("User authenticated, proceeding with enrollment");
     setIsLoading(true);
+
     try {
+      console.log(
+        "Making enrollment API call to:",
+        `/api/courses/${course.courseId}/enroll`,
+      );
+
       const response = await fetch(`/api/courses/${course.courseId}/enroll`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
+      console.log("Enrollment response status:", response.status);
+      console.log("Enrollment response ok:", response.ok);
+
       if (response.ok) {
+        const result = (await response.json()) as {
+          message: string;
+          assignmentsCreated: number;
+        };
+        console.log("Enrollment successful:", result);
         setIsEnrolled(true);
+        // Optionally refresh the page or show success message
+        window.location.reload();
       } else if (response.status === 401) {
+        console.log("Unauthorized, redirecting to login");
         // Unauthorized, redirect to login
         router.push("/auth/signin");
       } else {
-        console.error("Failed to enroll in course");
+        const errorData = (await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }))) as { error: string };
+        console.error(
+          "Failed to enroll in course:",
+          response.status,
+          errorData,
+        );
+        alert(`Failed to enroll: ${errorData.error ?? "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error enrolling in course:", error);
+      alert("Network error occurred while enrolling. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -259,12 +334,21 @@ export default function CourseHeader({ course }: CourseHeaderProps) {
             <div className="space-y-3">
               {isEnrolled ? (
                 <>
-                  <Link
-                    href="/dashboard"
-                    className="block w-full rounded-lg bg-green-600 px-4 py-3 text-center font-medium text-white transition-colors hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                  >
-                    Continue Learning
-                  </Link>
+                  {hasNextLesson ? (
+                    <Link
+                      href={`/courses/${course.courseId}/lessons/${nextLesson.lessonId}`}
+                      className="block w-full rounded-lg bg-green-600 px-4 py-3 text-center font-medium text-white transition-colors hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                    >
+                      Continue Learning - Lesson {nextLesson.order}
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/dashboard"
+                      className="block w-full rounded-lg bg-green-600 px-4 py-3 text-center font-medium text-white transition-colors hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                    >
+                      Course Complete
+                    </Link>
+                  )}
                   <button
                     onClick={handleCancelEnrollment}
                     className="w-full rounded-lg border border-red-300 px-4 py-3 font-medium text-red-700 transition-colors hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"

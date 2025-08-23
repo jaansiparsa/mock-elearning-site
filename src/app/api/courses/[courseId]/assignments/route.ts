@@ -1,18 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { prisma } from "@/server/db";
+import { db } from "@/server/db";
+
+type AssignmentWithSubmissions = {
+  assignmentId: string;
+  title: string;
+  description: string;
+  dueDate: Date;
+  points: number;
+  createdAt: Date;
+  submissions?: {
+    submissionId: string;
+    status: string;
+    submittedAt: Date | null;
+    grade: number | null;
+    feedback: string | null;
+  }[];
+};
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { courseId: string } },
+  { params }: { params: Promise<{ courseId: string }> },
 ) {
   try {
-    const { courseId } = params;
+    const { courseId } = await params;
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get("studentId");
 
     // Verify course exists
-    const course = await prisma.course.findUnique({
+    const course = await db.course.findUnique({
       where: { courseId },
       select: {
         courseId: true,
@@ -26,7 +42,7 @@ export async function GET(
     }
 
     // Get assignments with optional student submission data
-    const assignments = await prisma.assignment.findMany({
+    const assignments = await db.assignment.findMany({
       where: { courseId },
       select: {
         assignmentId: true,
@@ -65,7 +81,7 @@ export async function GET(
         points: assignment.points,
         createdAt: assignment.createdAt,
         ...(studentId && {
-          submission: submission || {
+          submission: submission ?? {
             status: "not_started",
             submittedAt: null,
             grade: null,
