@@ -1,10 +1,11 @@
 "use client";
 
+import type { AssignmentSubmission } from "@/types";
 import { useState } from "react";
 
 interface SubmissionFormProps {
   assignmentId: string;
-  latestSubmission: any | null;
+  latestSubmission: AssignmentSubmission | null;
   onSubmit: (content: string, file: File | null) => Promise<void>;
 }
 
@@ -29,6 +30,7 @@ export default function SubmissionForm({
       setSelectedFile(null);
     } catch (error) {
       console.error("Error submitting assignment:", error);
+      // Don't show alert here - parent component handles it
     } finally {
       setIsSubmitting(false);
     }
@@ -188,7 +190,14 @@ export default function SubmissionForm({
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            {!submissionContent.trim() && !selectedFile && (
+              <span className="text-orange-600">
+                Please provide either notes or upload a file
+              </span>
+            )}
+          </div>
           <button
             onClick={handleSubmit}
             disabled={

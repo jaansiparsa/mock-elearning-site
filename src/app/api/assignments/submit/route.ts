@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { HTTPStatus } from "@/types";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
       console.log("No session or user ID found");
       return NextResponse.json(
         { error: "Authentication required" },
-        { status: 401 },
+        { status: HTTPStatus.UNAUTHORIZED },
       );
     }
     const studentId = session.user.id;
@@ -92,6 +93,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Generate a random file URL if none provided
+    const finalFileUrl =
+      fileUrl ?? `https://example.com/uploads/submission-${Date.now()}.pdf`;
+    const finalFileName = fileName ?? `submission-${Date.now()}.pdf`;
+
+    console.log("Creating submission with data:", {
+      assignmentId,
+      studentId,
+      status: "completed",
+      assignedAt: new Date(),
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      submissionContent: submissionContent ?? null,
+      fileUrl: finalFileUrl,
+      fileName: finalFileName,
+      submittedAt: new Date(),
+    });
+
+    console.log("Final file URL and name:", { finalFileUrl, finalFileName });
+
     // Always create a new submission for multiple submissions support
     const submission = await db.assignmentSubmission.create({
       data: {
@@ -99,11 +119,10 @@ export async function POST(request: NextRequest) {
         studentId,
         status: "completed",
         assignedAt: new Date(),
-        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default due date
-        endedAt: new Date(),
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now as default
         submissionContent: submissionContent ?? null,
-        fileUrl: fileUrl ?? null,
-        fileName: fileName ?? null,
+        fileUrl: finalFileUrl,
+        fileName: finalFileName,
         submittedAt: new Date(),
       },
       select: {
@@ -111,9 +130,56 @@ export async function POST(request: NextRequest) {
         assignmentId: true,
         studentId: true,
         status: true,
-        endedAt: true,
+        submittedAt: true,
+        submissionContent: true,
+        fileUrl: true,
+        fileName: true,
+        dueDate: true,
       },
     });
+
+    console.log("Raw submission data from database:", submission);
+
+    console.log("Submission created successfully:", submission);
+
+    // Verify the submission was actually created by fetching it again
+    const verifySubmission = await db.assignmentSubmission.findUnique({
+      where: { submissionId: submission.submissionId },
+      select: {
+        submissionId: true,
+        assignmentId: true,
+        studentId: true,
+        status: true,
+        submittedAt: true,
+        submissionContent: true,
+        fileUrl: true,
+        fileName: true,
+        dueDate: true,
+      },
+    });
+
+    console.log("Verification - fetched submission:", verifySubmission);
+
+    // Also verify by querying all submissions for this user and assignment
+    const allUserSubmissions = await db.assignmentSubmission.findMany({
+      where: {
+        studentId,
+        assignmentId,
+      },
+      orderBy: [
+        {
+          submittedAt: "desc",
+        },
+        {
+          assignedAt: "desc",
+        },
+      ],
+    });
+
+    console.log(
+      "All user submissions for this assignment:",
+      allUserSubmissions,
+    );
 
     return NextResponse.json(
       {

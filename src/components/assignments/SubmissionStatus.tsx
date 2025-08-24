@@ -119,9 +119,10 @@ export default function SubmissionStatus({
             </div>
           )}
 
-          {latestSubmission.endedAt && (
+          {latestSubmission.submittedAt && (
             <div className="text-sm text-gray-500">
-              Submitted: {new Date(latestSubmission.endedAt).toLocaleString()}
+              Submitted:{" "}
+              {new Date(latestSubmission.submittedAt).toLocaleString()}
             </div>
           )}
 
@@ -144,9 +145,7 @@ export default function SubmissionStatus({
                     <span className="text-gray-700">
                       Submission {userSubmissions.length - index} -{" "}
                       {new Date(
-                        submission.submittedAt ??
-                          submission.endedAt ??
-                          submission.assignedAt,
+                        submission.submittedAt ?? submission.assignedAt,
                       ).toLocaleDateString()}
                     </span>
                     <span

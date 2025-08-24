@@ -3,7 +3,7 @@
 import { Camera, X } from "lucide-react";
 import { useRef, useState } from "react";
 
-import { ProfileUser } from "../../app/profile/types";
+import type { ProfileUser } from "../../app/profile/types";
 
 interface ProfileFormProps {
   user: ProfileUser;
@@ -16,11 +16,20 @@ export default function ProfileForm({ user }: ProfileFormProps) {
     firstName: user.firstName || "",
     lastName: user.lastName || "",
     username: user.username || "",
+    email: user.email || "",
     avatarUrl: user.avatarUrl || "",
   });
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Username validation state
+  const [usernameValidation, setUsernameValidation] = useState({
+    isChecking: false,
+    isAvailable: true,
+    message: "",
+    hasChanged: false,
+  });
 
   const uploadAvatar = async (file: File): Promise<string> => {
     // For now, we'll use a placeholder URL
@@ -39,6 +48,63 @@ export default function ProfileForm({ user }: ProfileFormProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Check username availability when username changes
+    if (name === "username" && value !== user.username) {
+      setUsernameValidation((prev) => ({ ...prev, hasChanged: true }));
+      checkUsernameAvailability(value);
+    }
+  };
+
+  const checkUsernameAvailability = async (username: string) => {
+    if (!username.trim()) {
+      setUsernameValidation({
+        isChecking: false,
+        isAvailable: true,
+        message: "",
+        hasChanged: false,
+      });
+      return;
+    }
+
+    setUsernameValidation((prev) => ({ ...prev, isChecking: true }));
+
+    try {
+      const response = await fetch("/api/profile/check-username", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: username.trim(),
+          currentUserId: user.id,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setUsernameValidation({
+          isChecking: false,
+          isAvailable: result.isAvailable,
+          message: result.message,
+          hasChanged: true,
+        });
+      } else {
+        setUsernameValidation({
+          isChecking: false,
+          isAvailable: false,
+          message: "Error checking username availability",
+          hasChanged: true,
+        });
+      }
+    } catch (error) {
+      setUsernameValidation({
+        isChecking: false,
+        isAvailable: false,
+        message: "Failed to check username availability",
+        hasChanged: true,
+      });
+    }
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,6 +147,19 @@ export default function ProfileForm({ user }: ProfileFormProps) {
       return;
     }
 
+    // Check if username has changed and validate availability
+    if (formData.username !== user.username) {
+      if (usernameValidation.isChecking) {
+        alert("Please wait while we check username availability");
+        return;
+      }
+
+      if (!usernameValidation.isAvailable) {
+        alert("Username is not available. Please choose a different username.");
+        return;
+      }
+    }
+
     setIsLoading(true);
 
     try {
@@ -90,6 +169,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          userId: user.id,
           firstName: formData.firstName,
           lastName: formData.lastName,
           username: formData.username,
@@ -105,6 +185,14 @@ export default function ProfileForm({ user }: ProfileFormProps) {
       }
 
       const result = await response.json();
+      console.log("Profile update response:", result);
+
+      // Validate the response structure
+      if (!result.user) {
+        console.error("Response missing user property:", result);
+        throw new Error("Invalid response format from server");
+      }
+
       setIsEditing(false);
 
       // Update the form data with the response
@@ -272,8 +360,34 @@ export default function ProfileForm({ user }: ProfileFormProps) {
               value={formData.username}
               onChange={handleInputChange}
               disabled={!isEditing}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500 sm:text-sm"
+              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500 sm:text-sm ${
+                usernameValidation.hasChanged && !usernameValidation.isChecking
+                  ? usernameValidation.isAvailable
+                    ? "border-green-500 focus:border-green-500"
+                    : "border-red-500 focus:border-red-500"
+                  : "border-gray-300 focus:border-blue-500"
+              }`}
             />
+            {usernameValidation.hasChanged && (
+              <div className="mt-1 flex items-center space-x-2">
+                {usernameValidation.isChecking ? (
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                    <span>Checking availability...</span>
+                  </div>
+                ) : (
+                  <div
+                    className={`flex items-center space-x-2 text-sm ${
+                      usernameValidation.isAvailable
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    <span>{usernameValidation.message}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div>

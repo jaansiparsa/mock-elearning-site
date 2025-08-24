@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 
 interface UpdatePreferencesRequest {
+  userId: string;
   notificationPreference?: boolean;
   preferredStudyTime?: string;
   weeklyLearningGoal?: number;
@@ -11,11 +13,26 @@ interface UpdatePreferencesRequest {
 export async function PUT(request: NextRequest) {
   try {
     const body = (await request.json()) as UpdatePreferencesRequest;
-    const { notificationPreference, preferredStudyTime, weeklyLearningGoal } =
-      body;
+    const {
+      userId,
+      notificationPreference,
+      preferredStudyTime,
+      weeklyLearningGoal,
+    } = body;
 
-    // For now, we'll need to get the user ID from the session
-    // This is a simplified version - in production you'd want proper authentication
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 },
+      );
+    }
+
+    // Verify the user exists and get current session
+    const session = await auth();
+    if (!session?.user?.id || session.user.id !== userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const updateData: Partial<UpdatePreferencesRequest> = {};
 
     if (notificationPreference !== undefined)
@@ -25,11 +42,21 @@ export async function PUT(request: NextRequest) {
     if (weeklyLearningGoal !== undefined)
       updateData.weeklyLearningGoal = weeklyLearningGoal;
 
-    // Note: This endpoint needs to be updated to work with proper authentication
-    // For now, it's a placeholder that shows the structure
+    // Update the user preferences in the database
+    const updatedUser = await db.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: {
+        id: true,
+        notificationPreference: true,
+        preferredStudyTime: true,
+        weeklyLearningGoal: true,
+      },
+    });
+
     return NextResponse.json({
       message: "Preferences updated successfully",
-      data: updateData,
+      user: updatedUser,
     });
   } catch (error) {
     console.error("Error updating preferences:", error);

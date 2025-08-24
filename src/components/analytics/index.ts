@@ -2,7 +2,7 @@ export { default as ProgressAnalytics } from "./ProgressAnalytics";
 export { default as AnalyticsSkeleton } from "./AnalyticsSkeleton";
 export { default as WeeklyLearningGoal } from "./WeeklyLearningGoal";
 export { default as StatsGrid } from "./StatsGrid";
-export { default as PerformanceTrends } from "./PerformanceTrends";
+
 export { default as ChartsSection } from "./ChartsSection";
 export { default as RecentActivity } from "./RecentActivity";
 export { default as AchievementsSection } from "./AchievementsSection";

@@ -8,8 +8,9 @@ import { TRPCReactProvider } from "@/trpc/react";
 import { Navigation } from "@/components/layout";
 
 export const metadata: Metadata = {
-  title: "Brex-MVP - Community Platform",
-  description: "Connect with our community and explore the platform",
+  title: "skillEd - Master New Skills with Expert-Led Courses",
+  description:
+    "Join thousands of learners worldwide in our comprehensive e-learning platform. From programming to design, business to science - unlock your potential with expert-led courses and hands-on projects.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 
 interface UpdateProfileRequest {
@@ -9,19 +10,36 @@ interface UpdateProfileRequest {
   email?: string;
   username?: string;
   weeklyLearningGoal?: number;
+  currentPassword?: string;
+  newPassword?: string;
+  password?: string;
 }
 
 export async function PUT(request: NextRequest) {
   try {
     const body = (await request.json()) as UpdateProfileRequest;
-    const { userId, firstName, lastName, email, username, weeklyLearningGoal } =
-      body;
+    const {
+      userId,
+      firstName,
+      lastName,
+      email,
+      username,
+      weeklyLearningGoal,
+      currentPassword,
+      newPassword,
+    } = body;
 
     if (!userId) {
       return NextResponse.json(
         { error: "User ID is required" },
         { status: 400 },
       );
+    }
+
+    // Verify the user exists and get current session
+    const session = await auth();
+    if (!session?.user?.id || session.user.id !== userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const updateData: Partial<UpdateProfileRequest> = {};
@@ -32,6 +50,14 @@ export async function PUT(request: NextRequest) {
     if (username !== undefined) updateData.username = username;
     if (weeklyLearningGoal !== undefined)
       updateData.weeklyLearningGoal = weeklyLearningGoal;
+
+    // Handle password change if provided
+    if (currentPassword && newPassword) {
+      // TODO: Implement password verification and hashing
+      // For now, we'll just update the password field
+      // In production, you'd want to verify the current password and hash the new one
+      updateData.password = newPassword;
+    }
 
     const updatedUser = await db.user.update({
       where: { id: userId },
@@ -53,7 +79,10 @@ export async function PUT(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(updatedUser);
+    return NextResponse.json({
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
   } catch (error) {
     console.error("Error updating profile:", error);
     return NextResponse.json(

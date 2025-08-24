@@ -7,7 +7,6 @@ import AchievementsSection from "./AchievementsSection";
 import AnalyticsSkeleton from "./AnalyticsSkeleton";
 import ChartsSection from "./ChartsSection";
 import CourseBreakdown from "./CourseBreakdown";
-import PerformanceTrends from "./PerformanceTrends";
 import PeriodSelector from "./PeriodSelector";
 import RecentActivity from "./RecentActivity";
 import StatsGrid from "./StatsGrid";
@@ -176,9 +175,6 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
         performance={analyticsData.performance}
         streaks={analyticsData.streaks}
       />
-
-      {/* Performance Trends */}
-      <PerformanceTrends performance={analyticsData.performance} />
 
       {/* Charts Section */}
       <ChartsSection />

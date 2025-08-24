@@ -10,8 +10,8 @@ export default async function Navigation() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="text-brex-orange text-2xl font-bold">
-              LearnHub
+            <Link href="/" className="text-2xl font-bold text-blue-600">
+              skillEd
             </Link>
           </div>
 
@@ -19,7 +19,7 @@ export default async function Navigation() {
           <div className="hidden space-x-8 md:flex">
             <Link
               href="/explore"
-              className="hover:text-brex-orange px-3 py-2 text-sm font-medium text-gray-700 transition-colors"
+              className="px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:text-blue-600"
             >
               Explore
             </Link>
@@ -28,19 +28,19 @@ export default async function Navigation() {
               <>
                 <Link
                   href="/dashboard"
-                  className="hover:text-brex-orange px-3 py-2 text-sm font-medium text-gray-700 transition-colors"
+                  className="px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:text-blue-600"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/assignments"
-                  className="hover:text-brex-orange px-3 py-2 text-sm font-medium text-gray-700 transition-colors"
+                  className="px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:text-blue-600"
                 >
                   Assignments
                 </Link>
                 <Link
                   href="/analytics"
-                  className="hover:text-brex-orange px-3 py-2 text-sm font-medium text-gray-700 transition-colors"
+                  className="px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:text-blue-600"
                 >
                   Analytics
                 </Link>
@@ -54,13 +54,13 @@ export default async function Navigation() {
               <>
                 <Link
                   href="/profile"
-                  className="bg-brex-orange hover:bg-brex-orange rounded-md px-4 py-2 text-sm font-medium text-white transition-colors"
+                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
                 >
                   Profile
                 </Link>
                 <Link
                   href="/api/auth/signout"
-                  className="hover:text-brex-orange text-sm font-medium text-gray-700 transition-colors"
+                  className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600"
                 >
                   Sign out
                 </Link>
@@ -69,13 +69,13 @@ export default async function Navigation() {
               <>
                 <Link
                   href="/auth/signin"
-                  className="hover:text-brex-orange text-sm font-medium text-gray-700 transition-colors"
+                  className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600"
                 >
                   Sign in
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="bg-brex-orange hover:bg-brex-orange rounded-md px-4 py-2 text-sm font-medium text-white transition-colors"
+                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
                 >
                   Sign up
                 </Link>

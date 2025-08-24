@@ -34,6 +34,18 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate password confirmation
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert("New password and confirmation password do not match");
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      alert("New password must be at least 6 characters long");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -43,6 +55,7 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          userId: user.id,
           currentPassword: passwordData.currentPassword,
           newPassword: passwordData.newPassword,
         }),

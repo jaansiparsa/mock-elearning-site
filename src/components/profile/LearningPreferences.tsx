@@ -60,6 +60,7 @@ export default function LearningPreferences({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          userId: user.id,
           notificationPreference: preferences.notificationPreference,
           preferredStudyTime: preferences.preferredStudyTime,
           weeklyLearningGoal: preferences.weeklyLearningGoal,

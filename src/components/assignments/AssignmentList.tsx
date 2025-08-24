@@ -158,8 +158,23 @@ export default function AssignmentList({
     setSortDirection("asc"); // Reset to ascending when sort column changes
   }, [currentSort]);
 
-  // Sort assignments based on current sort column and direction
-  const sortedAssignments = [...assignments].sort((a, b) => {
+  // Filter assignments based on current filters
+  const filteredAssignments = assignments.filter((assignment) => {
+    // Status filter
+    if (statusFilter !== "all" && assignment.status !== statusFilter) {
+      return false;
+    }
+
+    // Course filter
+    if (courseFilter !== "all" && assignment.courseId !== courseFilter) {
+      return false;
+    }
+
+    return true;
+  });
+
+  // Sort filtered assignments based on current sort column and direction
+  const sortedAssignments = [...filteredAssignments].sort((a, b) => {
     let comparison = 0;
 
     switch (sortBy) {
@@ -304,13 +319,18 @@ export default function AssignmentList({
                 id="status-filter"
                 value={statusFilter}
                 onChange={(e) => handleStatusFilter(e.target.value)}
-                className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                className={`rounded-md border px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none ${
+                  statusFilter !== "all"
+                    ? "border-blue-500 bg-blue-50 text-blue-900"
+                    : "border-gray-300 bg-white text-gray-900 focus:border-blue-500"
+                }`}
               >
                 <option value="all">All Statuses</option>
                 <option value="not_started">Not Started</option>
                 <option value="in_progress">In Progress</option>
-                <option value="submitted">Submitted</option>
+                <option value="completed">Completed</option>
                 <option value="graded">Graded</option>
+                <option value="overdue">Overdue</option>
               </select>
             </div>
 
@@ -323,7 +343,11 @@ export default function AssignmentList({
                 id="course-filter"
                 value={courseFilter}
                 onChange={(e) => handleCourseFilter(e.target.value)}
-                className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                className={`rounded-md border px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none ${
+                  courseFilter !== "all"
+                    ? "border-blue-500 bg-blue-50 text-blue-900"
+                    : "border-gray-300 bg-white text-gray-900 focus:border-blue-500"
+                }`}
               >
                 <option value="all">All Courses</option>
                 {courses.map((course) => (
@@ -339,22 +363,45 @@ export default function AssignmentList({
             <div className="text-sm text-gray-600">
               {sortedAssignments.length} assignment
               {sortedAssignments.length !== 1 ? "s" : ""} found
+              {(statusFilter !== "all" || courseFilter !== "all") && (
+                <span className="ml-2 text-blue-600">
+                  (filtered from {assignments.length})
+                </span>
+              )}
             </div>
-            {sortBy !== "dueDate" && (
-              <button
-                onClick={() => {
-                  setSortBy("dueDate");
-                  setSortDirection("asc");
-                  const url = new URL(window.location.href);
-                  url.searchParams.set("sort", "dueDate");
-                  window.history.pushState({}, "", url.toString());
-                }}
-                className="text-xs text-blue-600 underline hover:text-blue-700"
-                title="Reset to default sort (Due Date)"
-              >
-                Reset Sort
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {(statusFilter !== "all" || courseFilter !== "all") && (
+                <button
+                  onClick={() => {
+                    setStatusFilter("all");
+                    setCourseFilter("all");
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete("status");
+                    url.searchParams.delete("course");
+                    window.history.pushState({}, "", url.toString());
+                  }}
+                  className="text-xs text-blue-600 underline hover:text-blue-700"
+                  title="Clear all filters"
+                >
+                  Clear Filters
+                </button>
+              )}
+              {sortBy !== "dueDate" && (
+                <button
+                  onClick={() => {
+                    setSortBy("dueDate");
+                    setSortDirection("asc");
+                    const url = new URL(window.location.href);
+                    url.searchParams.set("sort", "dueDate");
+                    window.history.pushState({}, "", url.toString());
+                  }}
+                  className="text-xs text-blue-600 underline hover:text-blue-700"
+                  title="Reset to default sort (Due Date)"
+                >
+                  Reset Sort
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
