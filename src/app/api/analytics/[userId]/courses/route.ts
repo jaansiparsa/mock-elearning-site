@@ -4,10 +4,10 @@ import { db } from "@/server/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
-    const userId = params.userId;
+    const { userId } = await params;
 
     // Get user's course enrollments with lessons and completion data
     const enrollments = await db.courseEnrollment.findMany({

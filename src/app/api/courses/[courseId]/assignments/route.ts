@@ -48,7 +48,6 @@ export async function GET(
         assignmentId: true,
         title: true,
         description: true,
-        dueDate: true,
         points: true,
         createdAt: true,
         ...(studentId && {
@@ -65,7 +64,7 @@ export async function GET(
         }),
       },
       orderBy: {
-        dueDate: "asc",
+        createdAt: "asc",
       },
     });
 

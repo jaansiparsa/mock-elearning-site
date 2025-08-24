@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     const userId = session.user.id;
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "6");
+    const limit = parseInt(searchParams.get("limit") ?? "6");
 
     // Get user's enrolled courses
     const userEnrollments = await db.courseEnrollment.findMany({

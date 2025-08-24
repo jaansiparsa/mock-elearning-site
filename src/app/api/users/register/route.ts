@@ -1,12 +1,23 @@
-import { NextRequest, NextResponse } from "next/server";
 import { StudyTime, UserRole } from "@/types";
 
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/server/db";
 
+interface RegisterRequest {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  role?: UserRole;
+  preferredStudyTime?: StudyTime;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as RegisterRequest;
     const {
       email,
       password,
@@ -57,8 +68,8 @@ export async function POST(request: NextRequest) {
         firstName,
         lastName,
         username,
-        role: role || UserRole.student,
-        preferredStudyTime: preferredStudyTime || StudyTime.morning,
+        role: role ?? UserRole.student,
+        preferredStudyTime: preferredStudyTime ?? StudyTime.morning,
         notificationPreference: true,
         currentStreak: 0,
       },

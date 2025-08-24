@@ -5,11 +5,11 @@ import { db } from "@/server/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { studentId: string } },
+  { params }: { params: Promise<{ studentId: string }> },
 ) {
   try {
     const { searchParams } = new URL(request.url);
-    const studentId = params.studentId;
+    const { studentId } = await params;
 
     console.log("Fetching achievements for student:", studentId);
 
