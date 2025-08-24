@@ -2,7 +2,7 @@
 
 import { Bell, Clock, Moon, Sun, Zap } from "lucide-react";
 
-import { ProfileUser } from "./types";
+import type { ProfileUser } from "./types";
 import { useState } from "react";
 
 interface LearningPreferencesProps {
@@ -38,10 +38,14 @@ export default function LearningPreferences({
   const [isLoading, setIsLoading] = useState(false);
   const [preferences, setPreferences] = useState({
     notificationPreference: user.notificationPreference ?? true,
-    preferredStudyTime: user.preferredStudyTime || "morning",
+    preferredStudyTime: user.preferredStudyTime ?? "morning",
+    weeklyLearningGoal: user.weeklyLearningGoal ?? 300,
   });
 
-  const handlePreferenceChange = (key: string, value: any) => {
+  const handlePreferenceChange = (
+    key: string,
+    value: string | boolean | number,
+  ) => {
     setPreferences((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -58,12 +62,13 @@ export default function LearningPreferences({
         body: JSON.stringify({
           notificationPreference: preferences.notificationPreference,
           preferredStudyTime: preferences.preferredStudyTime,
+          weeklyLearningGoal: preferences.weeklyLearningGoal,
         }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to update preferences");
+        throw new Error(error.error ?? "Failed to update preferences");
       }
 
       setIsEditing(false);
@@ -82,7 +87,8 @@ export default function LearningPreferences({
     setIsEditing(false);
     setPreferences({
       notificationPreference: user.notificationPreference ?? true,
-      preferredStudyTime: user.preferredStudyTime || "morning",
+      preferredStudyTime: user.preferredStudyTime ?? "morning",
+      weeklyLearningGoal: user.weeklyLearningGoal ?? 300,
     });
   };
 
@@ -103,115 +109,122 @@ export default function LearningPreferences({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Notification Settings */}
-        <div>
-          <h3 className="mb-4 text-lg font-medium text-gray-900">
-            Notification Settings
-          </h3>
-          <div className="space-y-3">
-            <label className="flex items-center">
+        <div className="space-y-4">
+          {/* Notification Preference */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Notification Preferences
+            </label>
+            <div className="mt-2">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={preferences.notificationPreference}
+                  onChange={(e) =>
+                    handlePreferenceChange(
+                      "notificationPreference",
+                      e.target.checked,
+                    )
+                  }
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="ml-2 text-sm text-gray-700">
+                  Receive email notifications for course updates and assignments
+                </span>
+              </label>
+            </div>
+          </div>
+
+          {/* Weekly Learning Goal */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Weekly Learning Goal
+            </label>
+            <div className="mt-2 flex items-center space-x-2">
               <input
-                type="checkbox"
-                checked={preferences.notificationPreference}
+                type="number"
+                min="60"
+                max="1680"
+                step="30"
+                value={preferences.weeklyLearningGoal}
                 onChange={(e) =>
                   handlePreferenceChange(
-                    "notificationPreference",
-                    e.target.checked,
+                    "weeklyLearningGoal",
+                    parseInt(e.target.value) || 300,
                   )
                 }
-                disabled={!isEditing}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                className="block w-24 rounded-md border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
               />
-              <div className="ml-3 flex items-center">
-                <Bell className="mr-2 h-5 w-5 text-gray-400" />
-                <span className="text-sm font-medium text-gray-700">
-                  Enable learning notifications
-                </span>
-              </div>
-            </label>
-            <p className="ml-7 text-sm text-gray-500">
-              Receive reminders about course deadlines, new lessons, and
-              learning streaks
+              <span className="text-sm text-gray-500">minutes per week</span>
+              <span className="text-sm text-gray-400">
+                ({Math.round((preferences.weeklyLearningGoal / 60) * 10) / 10}{" "}
+                hours)
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              Set your target study time for each week (1-28 hours)
             </p>
           </div>
-        </div>
 
-        {/* Preferred Study Time */}
-        <div>
-          <h3 className="mb-4 text-lg font-medium text-gray-900">
-            Preferred Study Time
-          </h3>
-          <p className="mb-4 text-sm text-gray-600">
-            Choose when you're most productive for learning. This helps us
-            optimize your learning experience.
-          </p>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {STUDY_TIME_OPTIONS.map((option) => {
-              const IconComponent = option.icon;
-              return (
-                <label
-                  key={option.value}
-                  className={`relative flex cursor-pointer rounded-lg border p-4 transition-colors ${
-                    preferences.preferredStudyTime === option.value
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  } ${!isEditing ? "cursor-default" : ""}`}
-                >
-                  <input
-                    type="radio"
-                    name="preferredStudyTime"
-                    value={option.value}
-                    checked={preferences.preferredStudyTime === option.value}
-                    onChange={(e) =>
-                      handlePreferenceChange(
-                        "preferredStudyTime",
-                        e.target.value,
-                      )
-                    }
-                    disabled={!isEditing}
-                    className="sr-only"
-                  />
-
-                  <div className="flex w-full items-center">
-                    <div
-                      className={`mr-3 flex h-10 w-10 items-center justify-center rounded-full ${
+          {/* Preferred Study Time */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Preferred Study Time
+            </label>
+            <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {STUDY_TIME_OPTIONS.map((option) => {
+                const Icon = option.icon;
+                return (
+                  <label
+                    key={option.value}
+                    className={`flex cursor-pointer flex-col items-center rounded-lg border-2 p-3 transition-colors ${
+                      preferences.preferredStudyTime === option.value
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="preferredStudyTime"
+                      value={option.value}
+                      checked={preferences.preferredStudyTime === option.value}
+                      onChange={(e) =>
+                        handlePreferenceChange(
+                          "preferredStudyTime",
+                          e.target.value,
+                        )
+                      }
+                      className="sr-only"
+                    />
+                    <Icon
+                      className={`h-6 w-6 ${
                         preferences.preferredStudyTime === option.value
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-gray-100 text-gray-400"
+                          ? "text-blue-600"
+                          : "text-gray-400"
+                      }`}
+                    />
+                    <span
+                      className={`mt-2 text-sm font-medium ${
+                        preferences.preferredStudyTime === option.value
+                          ? "text-blue-900"
+                          : "text-gray-700"
                       }`}
                     >
-                      <IconComponent className="h-5 w-5" />
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-900">
-                        {option.label}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {option.description}
-                      </div>
-                    </div>
-
-                    {preferences.preferredStudyTime === option.value && (
-                      <div className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white">
-                        <svg
-                          className="h-3 w-3"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                </label>
-              );
-            })}
+                      {option.label}
+                    </span>
+                    <span
+                      className={`text-xs ${
+                        preferences.preferredStudyTime === option.value
+                          ? "text-blue-700"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {option.description}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
           </div>
         </div>
 

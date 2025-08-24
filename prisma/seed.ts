@@ -33,6 +33,7 @@ async function main() {
       notificationPreference: true,
       preferredStudyTime: "morning",
       currentStreak: 5,
+      weeklyLearningGoal: 420, // 7 hours per week
     },
     {
       email: "jane.smith@example.com",
@@ -45,6 +46,7 @@ async function main() {
       notificationPreference: false,
       preferredStudyTime: "evening",
       currentStreak: 3,
+      weeklyLearningGoal: 300, // 5 hours per week
     },
     {
       email: "prof.wilson@example.com",
@@ -57,6 +59,7 @@ async function main() {
       notificationPreference: true,
       preferredStudyTime: "morning",
       currentStreak: 0,
+      weeklyLearningGoal: 600, // 10 hours per week
     },
     {
       email: "admin@example.com",
@@ -69,6 +72,7 @@ async function main() {
       notificationPreference: true,
       preferredStudyTime: "morning",
       currentStreak: 0,
+      weeklyLearningGoal: 480, // 8 hours per week
     },
   ];
 

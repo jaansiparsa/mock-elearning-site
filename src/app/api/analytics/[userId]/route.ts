@@ -124,14 +124,20 @@ export async function GET(
       averageAssignmentScore = Math.round(totalPercentage / totalAssignments);
     }
 
-    // Get quiz performance data from quiz submissions
+    // Get quiz performance data
     const quizSubmissions = await db.quizSubmission.findMany({
       where: {
         studentId: userId,
         status: "graded",
         score: { not: null },
       },
-      include: {
+      select: {
+        submissionId: true,
+        studentId: true,
+        quizId: true,
+        score: true,
+        maxScore: true,
+        submittedAt: true,
         quiz: {
           select: {
             title: true,
@@ -261,6 +267,26 @@ export async function GET(
     // Reverse to show most recent first
     recentActivity.reverse();
 
+    // Get user's weekly learning goal
+    const userGoal = await db.user.findUnique({
+      where: { id: userId },
+      select: { weeklyLearningGoal: true },
+    });
+
+    const weeklyLearningGoal = userGoal?.weeklyLearningGoal ?? 300; // Default to 5 hours
+
+    // Calculate weekly goal progress
+    const weeklyGoalProgress = {
+      completed: weeklyStudyTime,
+      goal: weeklyLearningGoal,
+      percentage: Math.min(
+        Math.round((weeklyStudyTime / weeklyLearningGoal) * 100),
+        100,
+      ),
+      remaining: Math.max(weeklyLearningGoal - weeklyStudyTime, 0),
+      isOnTrack: weeklyStudyTime >= weeklyLearningGoal,
+    };
+
     return NextResponse.json({
       studyTime: {
         thisWeek: weeklyStudyTime,
@@ -282,9 +308,11 @@ export async function GET(
       streaks: {
         current: currentStreak,
         longest: longestStreak,
-        totalAchievements,
+        totalAchievements: totalAchievements,
       },
-      recentActivity,
+      weeklyLearningGoal,
+      weeklyGoalProgress,
+      recentActivity: recentActivity,
     });
   } catch (error) {
     console.error("Error fetching analytics:", error);

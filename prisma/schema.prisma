@@ -22,6 +22,7 @@ model User {
   updatedAt              DateTime               @updatedAt
   lastLearned            DateTime?
   currentStreak          Int                    @default(0)
+  weeklyLearningGoal     Int                    @default(300) // Default to 5 hours (300 minutes) per week
   achievements           Achievement[]
   submissions            AssignmentSubmission[]
   quizSubmissions        QuizSubmission[]

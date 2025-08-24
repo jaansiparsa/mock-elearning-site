@@ -4,13 +4,13 @@ import { ACHIEVEMENT_DISPLAY_MAP, AchievementType } from "@/types";
 import type { AchievementUI, PotentialAchievement } from "@/types";
 import {
   Award,
-  BarChart3,
   BookOpen,
   Calendar,
   Clock,
   Target,
   TrendingUp,
   Trophy,
+  Zap,
 } from "lucide-react";
 import {
   Bar,
@@ -54,6 +54,14 @@ interface AnalyticsData {
     current: number;
     longest: number;
     totalAchievements: number;
+  };
+  weeklyLearningGoal: number;
+  weeklyGoalProgress: {
+    completed: number;
+    goal: number;
+    percentage: number;
+    remaining: number;
+    isOnTrack: boolean;
   };
   recentActivity: Array<{
     date: string;
@@ -119,6 +127,30 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
   >([]);
   const [courseDataLoading, setCourseDataLoading] = useState(true);
 
+  // Mock data for charts
+  const mockStudyTimeData = [
+    { date: "Jan 1", minutes: 45 },
+    { date: "Jan 2", minutes: 60 },
+    { date: "Jan 3", minutes: 30 },
+    { date: "Jan 4", minutes: 75 },
+    { date: "Jan 5", minutes: 90 },
+    { date: "Jan 6", minutes: 120 },
+    { date: "Jan 7", minutes: 85 },
+  ];
+
+  const mockCategoryData = [
+    { category: "Programming", hours: 12.5 },
+    { category: "Marketing", hours: 8.2 },
+    { category: "Design", hours: 6.8 },
+    { category: "Business", hours: 4.5 },
+  ];
+
+  const mockCompletionData = [
+    { name: "Completed", value: 2 },
+    { name: "In Progress", value: 1 },
+    { name: "Not Started", value: 2 },
+  ];
+
   useEffect(() => {
     async function fetchAnalytics() {
       try {
@@ -175,27 +207,6 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
     void fetchCourseData();
   }, [userId, period]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!analyticsData) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900">
-            Unable to load analytics
-          </h2>
-          <p className="text-gray-600">Please try again later</p>
-        </div>
-      </div>
-    );
-  }
-
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -204,6 +215,22 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
     }
     return `${mins}m`;
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-lg">Loading analytics...</div>
+      </div>
+    );
+  }
+
+  if (!analyticsData) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-lg text-red-600">Failed to load analytics</div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -239,7 +266,116 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Weekly Learning Goal */}
+      <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">
+              Weekly Learning Goal
+            </h2>
+            <p className="text-sm text-gray-600">
+              Your target study time for this week
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-blue-600">
+              {Math.round(
+                ((analyticsData?.weeklyLearningGoal ?? 300) / 60) * 10,
+              ) / 10}{" "}
+              hours
+            </div>
+            <div className="text-sm text-gray-500">
+              {analyticsData?.weeklyLearningGoal ?? 300} minutes
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Bar and Stats */}
+        {analyticsData?.weeklyGoalProgress && (
+          <div className="mt-6">
+            {/* Progress Bar */}
+            <div className="mb-4">
+              <div className="mb-2 flex items-center justify-between text-sm text-gray-600">
+                <span>Progress this week</span>
+                <span>{analyticsData.weeklyGoalProgress.percentage}%</span>
+              </div>
+              <div className="h-3 w-full rounded-full bg-gray-200">
+                <div
+                  className={`h-3 rounded-full transition-all duration-300 ${
+                    analyticsData.weeklyGoalProgress.isOnTrack
+                      ? "bg-green-500"
+                      : analyticsData.weeklyGoalProgress.percentage > 50
+                        ? "bg-yellow-500"
+                        : "bg-blue-500"
+                  }`}
+                  style={{
+                    width: `${Math.min(analyticsData.weeklyGoalProgress.percentage, 100)}%`,
+                  }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Progress Stats */}
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-lg font-semibold text-gray-900">
+                  {formatTime(analyticsData.weeklyGoalProgress.completed)}
+                </div>
+                <div className="text-xs text-gray-500">Completed</div>
+              </div>
+              <div>
+                <div className="text-lg font-semibold text-gray-900">
+                  {formatTime(analyticsData.weeklyGoalProgress.remaining)}
+                </div>
+                <div className="text-xs text-gray-500">Remaining</div>
+              </div>
+              <div>
+                <div
+                  className={`text-lg font-semibold ${
+                    analyticsData.weeklyGoalProgress.isOnTrack
+                      ? "text-green-600"
+                      : "text-orange-600"
+                  }`}
+                >
+                  {analyticsData.weeklyGoalProgress.isOnTrack
+                    ? "On Track! 🎯"
+                    : "Keep Going! 💪"}
+                </div>
+                <div className="text-xs text-gray-500">Status</div>
+              </div>
+            </div>
+
+            {/* Lesson Completion Summary */}
+            <div className="mt-4 rounded-lg bg-blue-50 p-3">
+              <div className="text-sm text-blue-800">
+                <strong>This week:</strong> You have completed lessons totaling{" "}
+                <strong>
+                  {formatTime(analyticsData.weeklyGoalProgress.completed)}
+                </strong>{" "}
+                of your {formatTime(analyticsData.weeklyGoalProgress.goal)}{" "}
+                weekly goal.
+                {analyticsData.weeklyGoalProgress.isOnTrack ? (
+                  <span className="text-green-700">
+                    {" "}
+                    Great job staying on track!
+                  </span>
+                ) : (
+                  <span className="text-orange-700">
+                    {" "}
+                    You need{" "}
+                    {formatTime(
+                      analyticsData.weeklyGoalProgress.remaining,
+                    )}{" "}
+                    more to reach your goal.
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Four Metric Boxes */}
       <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {/* Study Time */}
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
@@ -248,41 +384,34 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
               <Clock className="h-6 w-6 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">
-                Study Time ({period === "week" ? "This Week" : "This Month"})
-              </p>
+              <p className="text-sm font-medium text-gray-600">Study Time</p>
               <p className="text-2xl font-semibold text-gray-900">
-                {formatTime(
-                  period === "week"
-                    ? analyticsData.studyTime.thisWeek
-                    : analyticsData.studyTime.thisMonth,
-                )}
+                {analyticsData?.studyTime.thisWeek ?? 0} min
               </p>
+              <p className="text-sm text-gray-500">This week</p>
             </div>
           </div>
         </div>
 
-        {/* Courses Progress */}
+        {/* Courses */}
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex items-center">
             <div className="rounded-full bg-green-100 p-3">
               <BookOpen className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">
-                Courses Progress
-              </p>
+              <p className="text-sm font-medium text-gray-600">Courses</p>
               <p className="text-2xl font-semibold text-gray-900">
-                {analyticsData.courses.completed}/{analyticsData.courses.total}
+                {analyticsData?.courses.total ?? 0}
               </p>
               <p className="text-sm text-gray-500">
-                {analyticsData.courses.inProgress} in progress
+                {analyticsData?.courses.inProgress ?? 0} in progress
               </p>
             </div>
           </div>
         </div>
 
-        {/* Quiz Performance */}
+        {/* Average Score */}
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex items-center">
             <div className="rounded-full bg-purple-100 p-3">
@@ -291,96 +420,192 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Average Score</p>
               <p className="text-2xl font-semibold text-gray-900">
-                {analyticsData.performance.combinedAverageScore}%
+                {analyticsData?.performance.combinedAverageScore.toFixed(0)}%
               </p>
               <p className="text-sm text-gray-500">
-                {analyticsData.performance.totalAssignments} assignments,{" "}
-                {analyticsData.performance.totalQuizzes} quizzes
+                {analyticsData?.performance.totalAssignments ?? 0} assignments,{" "}
+                {analyticsData?.performance.totalQuizzes ?? 0} quizzes
               </p>
             </div>
           </div>
         </div>
 
-        {/* Learning Streak */}
+        {/* Streak */}
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex items-center">
             <div className="rounded-full bg-orange-100 p-3">
-              <Trophy className="h-6 w-6 text-orange-600" />
+              <Zap className="h-6 w-6 text-orange-600" />
             </div>
             <div className="ml-4">
-              <div className="text-sm font-medium text-gray-600">
-                Learning Streak
-              </div>
-              <div className="text-2xl font-semibold text-gray-900">
-                {analyticsData.streaks.current} days
-              </div>
-              <div className="text-sm text-gray-500">
-                Best: {analyticsData.streaks.longest} days
-              </div>
+              <p className="text-sm font-medium text-gray-600">
+                Current Streak
+              </p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {analyticsData?.streaks.current ?? 0} days
+              </p>
+              <p className="text-sm text-gray-500">
+                Longest: {analyticsData?.streaks.longest ?? 0} days
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Detailed Analytics */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {/* Study Time Breakdown */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h3 className="mb-4 text-lg font-semibold text-gray-900">
-            Study Time Breakdown
-          </h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">This Week</span>
-              <span className="font-medium">
-                {formatTime(analyticsData.studyTime.thisWeek)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">This Month</span>
-              <span className="font-medium">
-                {formatTime(analyticsData.studyTime.thisMonth)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Total</span>
-              <span className="font-medium">
-                {formatTime(analyticsData.studyTime.total)}
-              </span>
-            </div>
+      {/* Performance Trends */}
+      <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-lg font-semibold text-gray-900">
+          Performance Trends
+        </h3>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600">Average Quiz Score</span>
+            <span className="font-medium">
+              {analyticsData?.performance.averageQuizScore ?? 0}%
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600">Total Quizzes</span>
+            <span className="font-medium">
+              {analyticsData?.performance.totalQuizzes ?? 0}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600">Average Assignment Score</span>
+            <span className="font-medium">
+              {analyticsData?.performance.averageAssignmentScore ?? 0}%
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600">Total Assignments</span>
+            <span className="font-medium">
+              {analyticsData?.performance.totalAssignments ?? 0}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress at a Glance */}
+      <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 className="mb-6 text-lg font-semibold text-gray-900">
+          Progress at a Glance
+        </h3>
+
+        {/* Study Time Line Chart */}
+        <div className="mb-8">
+          <h4 className="text-md mb-4 font-medium text-gray-800">
+            Study Time Over Last 30 Days
+          </h4>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={mockStudyTimeData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip
+                  formatter={(value: number) => [`${value} min`, "Study Time"]}
+                  labelFormatter={(label: string) => `Date: ${label}`}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="minutes"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Performance Trends */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h3 className="mb-4 text-lg font-semibold text-gray-900">
-            Performance Trends
-          </h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Average Quiz Score</span>
-              <span className="font-medium">
-                {analyticsData.performance.averageQuizScore}%
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Total Quizzes</span>
-              <span className="font-medium">
-                {analyticsData.performance.totalQuizzes}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Average Assignment Score</span>
-              <span className="font-medium">
-                {analyticsData.performance.averageAssignmentScore}%
-              </span>
-            </div>
+        {/* Course Category Bar Chart */}
+        <div className="mb-8">
+          <h4 className="text-md mb-4 font-medium text-gray-800">
+            Hours Spent per Course Category
+          </h4>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={mockCategoryData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="category" />
+                <YAxis />
+                <Tooltip
+                  formatter={(value: number) => [
+                    `${value} hours`,
+                    "Study Time",
+                  ]}
+                />
+                <Bar dataKey="hours" fill="#10b981" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Course Completion Pie Chart */}
+        <div className="mb-8">
+          <h4 className="text-md mb-4 font-medium text-gray-800">
+            Course Completion Rate
+          </h4>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={mockCompletionData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) =>
+                    `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`
+                  }
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {mockCompletionData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={["#3b82f6", "#10b981", "#f59e0b", "#ef4444"][index]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Daily Learning Activity Heatmap */}
+        <div>
+          <h4 className="text-md mb-4 font-medium text-gray-800">
+            Daily Learning Activity
+          </h4>
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: 7 }, (_, i) => (
+              <div key={i} className="text-center text-xs text-gray-500">
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][i]}
+              </div>
+            ))}
+            {Array.from({ length: 28 }, (_, i) => {
+              const intensity = Math.floor(Math.random() * 4);
+              const colors = [
+                "bg-gray-100",
+                "bg-green-200",
+                "bg-green-400",
+                "bg-green-600",
+              ];
+              return (
+                <div
+                  key={i}
+                  className={`h-8 w-8 rounded ${colors[intensity]} border border-gray-200`}
+                  title={`Day ${i + 1}: ${intensity * 25}% activity`}
+                />
+              );
+            })}
           </div>
         </div>
       </div>
 
       {/* Recent Activity */}
-      <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <h3 className="mb-4 text-lg font-semibold text-gray-900">
           Recent Activity
         </h3>
@@ -404,7 +629,7 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
       </div>
 
       {/* Achievements */}
-      <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <h3 className="mb-6 text-lg font-semibold text-gray-900">
           Achievements
         </h3>
@@ -489,217 +714,31 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
         </div>
 
         {/* Recent Achievements */}
-        {achievements.length > 0 && (
-          <div className="mt-12">
-            <h4 className="text-md mb-4 font-medium text-gray-800">
-              Recent Achievements
-            </h4>
-            <div className="space-y-3">
-              {achievements.slice(0, 3).map((achievement) => {
-                const displayInfo = ACHIEVEMENT_DISPLAY_MAP[achievement.type];
-                return (
-                  <div
-                    key={achievement.id}
-                    className="flex items-center space-x-3 rounded-lg border border-green-200 bg-gradient-to-r from-green-50 to-blue-50 p-4"
-                  >
-                    <div className="text-2xl">{displayInfo.icon}</div>
-                    <div className="flex-1">
-                      <h5 className="font-medium text-gray-900">
-                        {displayInfo.title}
-                      </h5>
-                      <p className="text-sm text-gray-700">
-                        Achievement unlocked!
-                      </p>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {new Date(achievement.earnedAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Interactive Charts and Visualizations */}
-      {/* MOCK DATA FOR THE CHARTS */}
-      <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h3 className="mb-6 text-lg font-semibold text-gray-900">
-          Progress at a Glance
-        </h3>
-
-        {/* Study Time Line Chart */}
-        <div className="mb-8">
+        <div className="mt-8">
           <h4 className="text-md mb-4 font-medium text-gray-800">
-            Study Time Over Last 30 Days
+            Recent Achievements
           </h4>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={[
-                  { date: "Jan 1", time: 45 },
-                  { date: "Jan 2", time: 60 },
-                  { date: "Jan 3", time: 30 },
-                  { date: "Jan 4", time: 75 },
-                  { date: "Jan 5", time: 90 },
-                  { date: "Jan 6", time: 120 },
-                  { date: "Jan 7", time: 85 },
-                  { date: "Jan 8", time: 65 },
-                  { date: "Jan 9", time: 100 },
-                  { date: "Jan 10", time: 55 },
-                  { date: "Jan 11", time: 80 },
-                  { date: "Jan 12", time: 95 },
-                  { date: "Jan 13", time: 70 },
-                  { date: "Jan 14", time: 110 },
-                  { date: "Jan 15", time: 40 },
-                  { date: "Jan 16", time: 85 },
-                  { date: "Jan 17", time: 75 },
-                  { date: "Jan 18", time: 90 },
-                  { date: "Jan 19", time: 65 },
-                  { date: "Jan 20", time: 100 },
-                  { date: "Jan 21", time: 80 },
-                  { date: "Jan 22", time: 95 },
-                  { date: "Jan 23", time: 70 },
-                  { date: "Jan 24", time: 110 },
-                  { date: "Jan 25", time: 85 },
-                  { date: "Jan 26", time: 60 },
-                  { date: "Jan 27", time: 90 },
-                  { date: "Jan 28", time: 75 },
-                  { date: "Jan 29", time: 100 },
-                  { date: "Jan 30", time: 85 },
-                ]}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip
-                  formatter={(value: number) => [
-                    `${value} minutes`,
-                    "Study Time",
-                  ]}
-                  labelFormatter={(label: string) => `Date: ${label}`}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="time"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Course Category Bar Chart */}
-        <div className="mb-8">
-          <h4 className="text-md mb-4 font-medium text-gray-800">
-            Hours Spent Per Course Category
-          </h4>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={[
-                  { category: "Programming", hours: 12.5 },
-                  { category: "Marketing", hours: 8.2 },
-                  { category: "Design", hours: 6.8 },
-                  { category: "Business", hours: 4.5 },
-                ]}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="category" />
-                <YAxis />
-                <Tooltip
-                  formatter={(value: number) => [
-                    `${value} hours`,
-                    "Study Time",
-                  ]}
-                />
-                <Bar dataKey="hours" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Course Completion Pie Chart */}
-        <div className="mb-8">
-          <h4 className="text-md mb-4 font-medium text-gray-800">
-            Completion Rate Breakdown by Course
-          </h4>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={[
-                    { name: "Completed", value: 2, fill: "#10b981" },
-                    { name: "In Progress", value: 1, fill: "#f59e0b" },
-                    { name: "Not Started", value: 2, fill: "#6b7280" },
-                  ]}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="value"
-                  label={({ name, percent }) =>
-                    `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`
-                  }
+          <div className="space-y-3">
+            {achievements.slice(0, 3).map((achievement) => {
+              const displayInfo = ACHIEVEMENT_DISPLAY_MAP[achievement.type];
+              return (
+                <div
+                  key={achievement.id}
+                  className="flex items-center space-x-3 rounded-lg bg-green-50 p-3"
                 >
-                  {[
-                    { name: "Completed", value: 2, fill: "#10b981" },
-                    { name: "In Progress", value: 1, fill: "#f59e0b" },
-                    { name: "Not Started", value: 2, fill: "#6b7280" },
-                  ].map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value: number) => [`${value} courses`, "Count"]}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Learning Activity Heatmap Calendar */}
-        <div>
-          <h4 className="text-md mb-4 font-medium text-gray-800">
-            Daily Learning Activity
-          </h4>
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                Less{" "}
-                <span className="inline-block h-3 w-3 rounded-sm bg-gray-200"></span>
-                <span className="mx-1 inline-block h-3 w-3 rounded-sm bg-gray-300"></span>
-                <span className="mx-1 inline-block h-3 w-3 rounded-sm bg-gray-400"></span>
-                <span className="mx-1 inline-block h-3 w-3 rounded-sm bg-gray-500"></span>
-                <span className="mx-1 inline-block h-3 w-3 rounded-sm bg-gray-600"></span>{" "}
-                More
-              </div>
-              <div className="text-xs text-gray-500">Last 365 days</div>
-            </div>
-            <div className="grid grid-cols-53 gap-1">
-              {/* Generate 365 days of activity squares */}
-              {Array.from({ length: 365 }, (_, i) => {
-                const activityLevel = Math.floor(Math.random() * 5); // Random activity for demo
-                const bgColor = [
-                  "bg-gray-100",
-                  "bg-gray-200",
-                  "bg-gray-300",
-                  "bg-gray-400",
-                  "bg-gray-500",
-                ][activityLevel];
-
-                return (
-                  <div
-                    key={i}
-                    className={`h-3 w-3 rounded-sm ${bgColor} cursor-pointer transition-colors hover:scale-110`}
-                    title={`Day ${i + 1}: ${activityLevel > 0 ? `${activityLevel * 20}% activity` : "No activity"}`}
-                  />
-                );
-              })}
-            </div>
+                  <div className="text-2xl">{displayInfo.icon}</div>
+                  <div className="flex-1">
+                    <h5 className="text-sm font-medium text-gray-900">
+                      {displayInfo.title}
+                    </h5>
+                    <p className="text-xs text-gray-600">
+                      Earned{" "}
+                      {new Date(achievement.earnedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

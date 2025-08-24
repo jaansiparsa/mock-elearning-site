@@ -4,10 +4,11 @@ export interface ProfileUser {
   firstName: string;
   lastName: string;
   username: string;
-  avatarUrl?: string;
+  avatarUrl: string;
   role: string;
   notificationPreference: boolean;
   preferredStudyTime: string;
+  weeklyLearningGoal: number;
   createdAt: Date;
   updatedAt: Date;
 }

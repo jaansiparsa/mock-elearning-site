@@ -27,6 +27,7 @@ export default async function ProfilePage() {
       role: true,
       notificationPreference: true,
       preferredStudyTime: true,
+      weeklyLearningGoal: true,
       createdAt: true,
       updatedAt: true,
     },

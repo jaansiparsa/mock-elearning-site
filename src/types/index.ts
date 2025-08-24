@@ -77,6 +77,7 @@ export interface User {
   updatedAt: Date;
   lastLearned?: Date;
   currentStreak: number;
+  weeklyLearningGoal: number;
 }
 
 export interface Course {
@@ -242,4 +243,12 @@ export interface PotentialAchievement {
   highScores?: number;
   coursesCompleted?: number;
   studyTime?: number;
+}
+
+export interface WeeklyGoalProgress {
+  completed: number;
+  goal: number;
+  percentage: number;
+  remaining: number;
+  isOnTrack: boolean;
 }
