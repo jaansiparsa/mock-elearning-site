@@ -9,7 +9,7 @@ import {
   User as UserIcon,
 } from "lucide-react";
 
-import { ProfileUser } from "../../app/profile/types";
+import type { ProfileUser } from "../../app/profile/types";
 import { useState } from "react";
 
 interface AccountSettingsProps {
@@ -62,7 +62,7 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = (await response.json()) as { error: string };
         throw new Error(error.error || "Failed to change password");
       }
 

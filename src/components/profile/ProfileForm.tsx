@@ -82,7 +82,10 @@ export default function ProfileForm({ user }: ProfileFormProps) {
       });
 
       if (response.ok) {
-        const result = await response.json();
+        const result = (await response.json()) as {
+          isAvailable: boolean;
+          message: string;
+        };
         setUsernameValidation({
           isChecking: false,
           isAvailable: result.isAvailable,
