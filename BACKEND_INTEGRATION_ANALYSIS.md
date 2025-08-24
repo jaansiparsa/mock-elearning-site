@@ -473,13 +473,7 @@ if (error) {
 ```
 
 
-### Future improvements**: full optimistic updates
+### Future improvements: full optimistic updates
 
 - Rollback mechanism for failed updates
-- Error state communication
-- Consistent error response format: `{ error: string }`
-- Proper HTTP status codes
-- User friendly error messages
-- Frontend and backend validation
-- Basic pagination in API endpoints
-- No infinite scroll
+- caching
