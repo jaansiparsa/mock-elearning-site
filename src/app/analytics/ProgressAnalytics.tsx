@@ -12,6 +12,20 @@ import {
   TrendingUp,
   Trophy,
 } from "lucide-react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { useEffect, useState } from "react";
 
 interface ProgressAnalyticsProps {
@@ -48,6 +62,47 @@ interface AnalyticsData {
   }>;
 }
 
+interface CourseEnrollment {
+  enrollmentId: string;
+  course: {
+    courseId: string;
+    title: string;
+    category: string;
+    difficultyLevel: string;
+    lessons: Array<{
+      lessonId: string;
+      title: string;
+      estimatedTime: number;
+    }>;
+  };
+  lessonCompletions: Array<{
+    lessonId: string;
+    completedAt: Date;
+  }>;
+}
+
+interface UserAssignment {
+  assignmentId: string;
+  title: string;
+  points: number;
+  submission?: {
+    status: string;
+    grade?: number;
+    submittedAt?: Date;
+  };
+}
+
+interface UserQuiz {
+  quizId: string;
+  title: string;
+  totalPoints: number;
+  submission?: {
+    status: string;
+    score?: number;
+    submittedAt?: Date;
+  };
+}
+
 export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
     null,
@@ -59,6 +114,10 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
     PotentialAchievement[]
   >([]);
   const [achievementsLoading, setAchievementsLoading] = useState(true);
+  const [courseEnrollments, setCourseEnrollments] = useState<
+    CourseEnrollment[]
+  >([]);
+  const [courseDataLoading, setCourseDataLoading] = useState(true);
 
   useEffect(() => {
     async function fetchAnalytics() {
@@ -95,8 +154,25 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
       }
     }
 
+    async function fetchCourseData() {
+      try {
+        const response = await fetch(`/api/analytics/${userId}/courses`);
+        if (response.ok) {
+          const data = (await response.json()) as {
+            enrollments: CourseEnrollment[];
+          };
+          setCourseEnrollments(data.enrollments ?? []);
+        }
+      } catch (error) {
+        console.error("Error fetching course data:", error);
+      } finally {
+        setCourseDataLoading(false);
+      }
+    }
+
     void fetchAnalytics();
     void fetchAchievements();
+    void fetchCourseData();
   }, [userId, period]);
 
   if (loading) {
@@ -127,19 +203,6 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
       return `${hours}h ${mins}m`;
     }
     return `${mins}m`;
-  };
-
-  const getGradeTrendColor = (trend: number) => {
-    if (trend > 0) return "text-green-600";
-    if (trend < 0) return "text-red-600";
-    return "text-gray-600";
-  };
-
-  const getGradeTrendIcon = (trend: number) => {
-    if (trend > 0) return <TrendingUp className="h-4 w-4 text-green-600" />;
-    if (trend < 0)
-      return <TrendingUp className="h-4 w-4 rotate-180 text-red-600" />;
-    return <BarChart3 className="h-4 w-4 text-gray-600" />;
   };
 
   return (
@@ -245,15 +308,15 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
               <Trophy className="h-6 w-6 text-orange-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">
+              <div className="text-sm font-medium text-gray-600">
                 Learning Streak
-              </p>
-              <p className="text-2xl font-semibold text-gray-900">
+              </div>
+              <div className="text-2xl font-semibold text-gray-900">
                 {analyticsData.streaks.current} days
-              </p>
-              <p className="text-sm text-gray-500">
+              </div>
+              <div className="text-sm text-gray-500">
                 Best: {analyticsData.streaks.longest} days
-              </p>
+              </div>
             </div>
           </div>
         </div>
@@ -429,7 +492,7 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
         {achievements.length > 0 && (
           <div className="mt-12">
             <h4 className="text-md mb-4 font-medium text-gray-800">
-              Recent Milestones
+              Recent Achievements
             </h4>
             <div className="space-y-3">
               {achievements.slice(0, 3).map((achievement) => {
@@ -457,6 +520,372 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Interactive Charts and Visualizations */}
+      {/* MOCK DATA FOR THE CHARTS */}
+      <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 className="mb-6 text-lg font-semibold text-gray-900">
+          Progress at a Glance
+        </h3>
+
+        {/* Study Time Line Chart */}
+        <div className="mb-8">
+          <h4 className="text-md mb-4 font-medium text-gray-800">
+            Study Time Over Last 30 Days
+          </h4>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={[
+                  { date: "Jan 1", time: 45 },
+                  { date: "Jan 2", time: 60 },
+                  { date: "Jan 3", time: 30 },
+                  { date: "Jan 4", time: 75 },
+                  { date: "Jan 5", time: 90 },
+                  { date: "Jan 6", time: 120 },
+                  { date: "Jan 7", time: 85 },
+                  { date: "Jan 8", time: 65 },
+                  { date: "Jan 9", time: 100 },
+                  { date: "Jan 10", time: 55 },
+                  { date: "Jan 11", time: 80 },
+                  { date: "Jan 12", time: 95 },
+                  { date: "Jan 13", time: 70 },
+                  { date: "Jan 14", time: 110 },
+                  { date: "Jan 15", time: 40 },
+                  { date: "Jan 16", time: 85 },
+                  { date: "Jan 17", time: 75 },
+                  { date: "Jan 18", time: 90 },
+                  { date: "Jan 19", time: 65 },
+                  { date: "Jan 20", time: 100 },
+                  { date: "Jan 21", time: 80 },
+                  { date: "Jan 22", time: 95 },
+                  { date: "Jan 23", time: 70 },
+                  { date: "Jan 24", time: 110 },
+                  { date: "Jan 25", time: 85 },
+                  { date: "Jan 26", time: 60 },
+                  { date: "Jan 27", time: 90 },
+                  { date: "Jan 28", time: 75 },
+                  { date: "Jan 29", time: 100 },
+                  { date: "Jan 30", time: 85 },
+                ]}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip
+                  formatter={(value: number) => [
+                    `${value} minutes`,
+                    "Study Time",
+                  ]}
+                  labelFormatter={(label: string) => `Date: ${label}`}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="time"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Course Category Bar Chart */}
+        <div className="mb-8">
+          <h4 className="text-md mb-4 font-medium text-gray-800">
+            Hours Spent Per Course Category
+          </h4>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={[
+                  { category: "Programming", hours: 12.5 },
+                  { category: "Marketing", hours: 8.2 },
+                  { category: "Design", hours: 6.8 },
+                  { category: "Business", hours: 4.5 },
+                ]}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="category" />
+                <YAxis />
+                <Tooltip
+                  formatter={(value: number) => [
+                    `${value} hours`,
+                    "Study Time",
+                  ]}
+                />
+                <Bar dataKey="hours" fill="#10b981" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Course Completion Pie Chart */}
+        <div className="mb-8">
+          <h4 className="text-md mb-4 font-medium text-gray-800">
+            Completion Rate Breakdown by Course
+          </h4>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: "Completed", value: 2, fill: "#10b981" },
+                    { name: "In Progress", value: 1, fill: "#f59e0b" },
+                    { name: "Not Started", value: 2, fill: "#6b7280" },
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  label={({ name, percent }) =>
+                    `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`
+                  }
+                >
+                  {[
+                    { name: "Completed", value: 2, fill: "#10b981" },
+                    { name: "In Progress", value: 1, fill: "#f59e0b" },
+                    { name: "Not Started", value: 2, fill: "#6b7280" },
+                  ].map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value: number) => [`${value} courses`, "Count"]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Learning Activity Heatmap Calendar */}
+        <div>
+          <h4 className="text-md mb-4 font-medium text-gray-800">
+            Daily Learning Activity
+          </h4>
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Less{" "}
+                <span className="inline-block h-3 w-3 rounded-sm bg-gray-200"></span>
+                <span className="mx-1 inline-block h-3 w-3 rounded-sm bg-gray-300"></span>
+                <span className="mx-1 inline-block h-3 w-3 rounded-sm bg-gray-400"></span>
+                <span className="mx-1 inline-block h-3 w-3 rounded-sm bg-gray-500"></span>
+                <span className="mx-1 inline-block h-3 w-3 rounded-sm bg-gray-600"></span>{" "}
+                More
+              </div>
+              <div className="text-xs text-gray-500">Last 365 days</div>
+            </div>
+            <div className="grid grid-cols-53 gap-1">
+              {/* Generate 365 days of activity squares */}
+              {Array.from({ length: 365 }, (_, i) => {
+                const activityLevel = Math.floor(Math.random() * 5); // Random activity for demo
+                const bgColor = [
+                  "bg-gray-100",
+                  "bg-gray-200",
+                  "bg-gray-300",
+                  "bg-gray-400",
+                  "bg-gray-500",
+                ][activityLevel];
+
+                return (
+                  <div
+                    key={i}
+                    className={`h-3 w-3 rounded-sm ${bgColor} cursor-pointer transition-colors hover:scale-110`}
+                    title={`Day ${i + 1}: ${activityLevel > 0 ? `${activityLevel * 20}% activity` : "No activity"}`}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Course Breakdown */}
+      <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 className="mb-6 text-lg font-semibold text-gray-900">
+          Detailed Course Breakdown
+        </h3>
+
+        {/* Course List */}
+        <div className="space-y-4">
+          {courseEnrollments.map((enrollment) => {
+            const totalLessons = enrollment.course.lessons.length;
+            const completedLessons = enrollment.lessonCompletions.length;
+            const completionPercentage =
+              totalLessons > 0
+                ? Math.round((completedLessons / totalLessons) * 100)
+                : 0;
+
+            return (
+              <div
+                key={enrollment.enrollmentId}
+                className="rounded-lg border border-gray-200 bg-gray-50"
+              >
+                <button
+                  className="flex w-full items-center justify-between p-4 text-left hover:bg-gray-100"
+                  onClick={() => {
+                    const content = document.getElementById(
+                      `course-${enrollment.enrollmentId}`,
+                    );
+                    if (content) {
+                      content.classList.toggle("hidden");
+                    }
+                  }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                        enrollment.course.category === "programming"
+                          ? "bg-blue-100"
+                          : enrollment.course.category === "marketing"
+                            ? "bg-green-100"
+                            : enrollment.course.category === "design"
+                              ? "bg-purple-100"
+                              : "bg-gray-100"
+                      }`}
+                    >
+                      <BookOpen
+                        className={`h-5 w-5 ${
+                          enrollment.course.category === "programming"
+                            ? "text-blue-600"
+                            : enrollment.course.category === "marketing"
+                              ? "text-green-600"
+                              : enrollment.course.category === "design"
+                                ? "text-purple-600"
+                                : "text-gray-600"
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">
+                        {enrollment.course.title}
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        {enrollment.course.category.charAt(0).toUpperCase() +
+                          enrollment.course.category.slice(1)}{" "}
+                        •{" "}
+                        {enrollment.course.difficultyLevel
+                          .charAt(0)
+                          .toUpperCase() +
+                          enrollment.course.difficultyLevel.slice(1)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">
+                        {completionPercentage}% Complete
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {completedLessons} of {totalLessons} lessons
+                      </p>
+                    </div>
+                    <div className="h-5 w-5 text-gray-400">
+                      <svg
+                        className="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Expandable Content */}
+                <div
+                  id={`course-${enrollment.enrollmentId}`}
+                  className="hidden border-t border-gray-200 p-4"
+                >
+                  {/* Lesson Completion Timeline */}
+                  <div className="mb-6">
+                    <h5 className="mb-3 text-sm font-medium text-gray-800">
+                      Lesson Completion Timeline
+                    </h5>
+                    <div className="space-y-3">
+                      {enrollment.course.lessons.map((lesson) => {
+                        const isCompleted = enrollment.lessonCompletions.some(
+                          (completion) =>
+                            completion.lessonId === lesson.lessonId,
+                        );
+                        const completion = enrollment.lessonCompletions.find(
+                          (completion) =>
+                            completion.lessonId === lesson.lessonId,
+                        );
+
+                        return (
+                          <div
+                            key={lesson.lessonId}
+                            className="flex items-center space-x-3"
+                          >
+                            <div
+                              className={`h-3 w-3 rounded-full ${
+                                isCompleted ? "bg-green-500" : "bg-gray-300"
+                              }`}
+                            ></div>
+                            <span
+                              className={`text-sm ${
+                                isCompleted ? "text-gray-700" : "text-gray-500"
+                              }`}
+                            >
+                              {lesson.title}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {isCompleted
+                                ? `Completed ${completion?.completedAt ? new Date(completion.completedAt).toLocaleDateString() : "recently"}`
+                                : "Not started"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Course Stats */}
+                  <div className="mb-4">
+                    <h5 className="mb-3 text-sm font-medium text-gray-800">
+                      Course Statistics
+                    </h5>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="rounded-lg bg-blue-50 p-3">
+                        <div className="text-sm text-blue-600">
+                          Total Study Time
+                        </div>
+                        <div className="text-lg font-semibold text-blue-900">
+                          {enrollment.course.lessons.reduce(
+                            (total, lesson) => total + lesson.estimatedTime,
+                            0,
+                          )}{" "}
+                          min
+                        </div>
+                        <div className="text-xs text-blue-600">Estimated</div>
+                      </div>
+                      <div className="rounded-lg bg-green-50 p-3">
+                        <div className="text-sm text-green-600">Progress</div>
+                        <div className="text-lg font-semibold text-green-900">
+                          {completionPercentage}%
+                        </div>
+                        <div className="text-xs text-green-600">
+                          {completedLessons}/{totalLessons} lessons
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
