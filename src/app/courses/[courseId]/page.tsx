@@ -1,4 +1,4 @@
-import CourseDetailContent from "./CourseDetailContent";
+import { CourseDetailContent } from "@/components/courses";
 import { Suspense } from "react";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";

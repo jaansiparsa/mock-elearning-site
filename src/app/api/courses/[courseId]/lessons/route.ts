@@ -2,13 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/server/db";
 
+// Define the request body interface
+interface CreateLessonRequest {
+  title: string;
+  description: string;
+  order: number;
+  estimatedTime: number;
+  instructorId: string;
+}
+
+// Define the params interface
+interface RouteParams {
+  courseId: string;
+}
+
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ courseId: string }> },
+  { params }: { params: Promise<RouteParams> },
 ) {
   try {
     const { courseId } = await params;
-    const body = await request.json();
+    const body: CreateLessonRequest = await request.json();
     const { title, description, order, estimatedTime, instructorId } = body;
 
     // Validation

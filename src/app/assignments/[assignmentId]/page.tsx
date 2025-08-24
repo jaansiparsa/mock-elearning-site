@@ -1,6 +1,6 @@
 import type { Assignment, AssignmentSubmission } from "@/types";
 
-import AssignmentDetailPage from "./AssignmentDetailPage";
+import { AssignmentDetailPage } from "@/components/assignments";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 

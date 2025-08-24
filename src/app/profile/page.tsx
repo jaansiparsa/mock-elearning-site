@@ -1,6 +1,9 @@
-import AccountSettings from "./AccountSettings";
-import LearningPreferences from "./LearningPreferences";
-import ProfileForm from "./ProfileForm";
+import {
+  AccountSettings,
+  LearningPreferences,
+  ProfileForm,
+} from "@/components/profile";
+
 import { ProfileUser } from "./types";
 import { Suspense } from "react";
 import { auth } from "@/server/auth";

@@ -1,4 +1,4 @@
-import { AssignmentDataProvider } from "./components";
+import { AssignmentDataProvider } from "@/components/assignments";
 import { auth } from "@/server/auth";
 
 interface AssignmentPageProps {

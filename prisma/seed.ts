@@ -448,7 +448,7 @@ async function main() {
     },
     {
       studentId: student1!.id,
-      assignmentId: createdAssignments[1].assignmentId,
+      assignmentId: createdAssignments[1]!.assignmentId,
       status: "in_progress",
       assignedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -456,7 +456,7 @@ async function main() {
     },
     {
       studentId: student1!.id,
-      assignmentId: createdAssignments[2].assignmentId,
+      assignmentId: createdAssignments[2]!.assignmentId,
       status: "not_started",
       assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -464,7 +464,7 @@ async function main() {
     // Student 2 assignments
     {
       studentId: student2!.id,
-      assignmentId: createdAssignments[0].assignmentId,
+      assignmentId: createdAssignments[0]!.assignmentId,
       status: "graded",
       assignedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -480,7 +480,7 @@ async function main() {
     },
     {
       studentId: student2!.id,
-      assignmentId: createdAssignments[1].assignmentId,
+      assignmentId: createdAssignments[1]!.assignmentId,
       status: "graded",
       assignedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -492,14 +492,14 @@ async function main() {
     // Student 1 in Advanced React course
     {
       studentId: student1!.id,
-      assignmentId: createdAssignments[3].assignmentId,
+      assignmentId: createdAssignments[3]!.assignmentId,
       status: "not_started",
       assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
       dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000), // 45 days from now
     },
     {
       studentId: student1!.id,
-      assignmentId: createdAssignments[4].assignmentId,
+      assignmentId: createdAssignments[4]!.assignmentId,
       status: "not_started",
       assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
       dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
@@ -642,7 +642,7 @@ async function main() {
   console.log("Creating lesson completions...");
   const lessonCompletions = [
     {
-      enrollmentId: createdEnrollments[0].enrollmentId, // Student 1 in JavaScript
+      enrollmentId: createdEnrollments[0]!.enrollmentId, // Student 1 in JavaScript
       lessonId: createdLessons[0]!.lessonId,
     },
     {

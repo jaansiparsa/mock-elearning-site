@@ -1,1 +1,0 @@
-export { AssignmentDetails } from "./AssignmentDetails";

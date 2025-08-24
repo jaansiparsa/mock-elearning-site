@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { HTTPStatus } from "@/types";
 import { db } from "@/server/db";
 
 export async function GET(
@@ -12,7 +13,7 @@ export async function GET(
     if (!courseId) {
       return NextResponse.json(
         { error: "Course ID is required" },
-        { status: 400 },
+        { status: HTTPStatus.BAD_REQUEST },
       );
     }
 
@@ -87,7 +88,10 @@ export async function GET(
     });
 
     if (!course) {
-      return NextResponse.json({ error: "Course not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Course not found" },
+        { status: HTTPStatus.NOT_FOUND },
+      );
     }
 
     // Calculate course statistics
@@ -124,7 +128,7 @@ export async function GET(
     console.error("Error fetching course details:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: HTTPStatus.SERVER_ERROR },
     );
   }
 }

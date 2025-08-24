@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { HTTPStatus } from "@/types";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 
@@ -12,14 +13,17 @@ export async function POST(
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: HTTPStatus.UNAUTHORIZED },
+      );
     }
 
     // Check if user is a student
     if (session.user.role !== "student") {
       return NextResponse.json(
         { error: "Only students can enroll in courses" },
-        { status: 403 },
+        { status: HTTPStatus.FORBIDDEN },
       );
     }
 
@@ -33,7 +37,10 @@ export async function POST(
     });
 
     if (!course) {
-      return NextResponse.json({ error: "Course not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Course not found" },
+        { status: HTTPStatus.NOT_FOUND },
+      );
     }
 
     // Check if already enrolled
@@ -49,7 +56,7 @@ export async function POST(
     if (existingEnrollment) {
       return NextResponse.json(
         { error: "Already enrolled in this course" },
-        { status: 400 },
+        { status: HTTPStatus.BAD_REQUEST },
       );
     }
 
@@ -89,7 +96,7 @@ export async function POST(
     console.error("Enrollment error:", error);
     return NextResponse.json(
       { error: "Failed to enroll in course" },
-      { status: 500 },
+      { status: HTTPStatus.SERVER_ERROR },
     );
   }
 }
@@ -103,14 +110,17 @@ export async function DELETE(
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: HTTPStatus.UNAUTHORIZED },
+      );
     }
 
     // Check if user is a student
     if (session.user.role !== "student") {
       return NextResponse.json(
         { error: "Only students can cancel enrollment" },
-        { status: 403 },
+        { status: HTTPStatus.FORBIDDEN },
       );
     }
 
@@ -127,7 +137,7 @@ export async function DELETE(
     if (!enrollment) {
       return NextResponse.json(
         { error: "Not enrolled in this course" },
-        { status: 404 },
+        { status: HTTPStatus.NOT_FOUND },
       );
     }
 
@@ -160,7 +170,7 @@ export async function DELETE(
     console.error("Cancel enrollment error:", error);
     return NextResponse.json(
       { error: "Failed to cancel enrollment" },
-      { status: 500 },
+      { status: HTTPStatus.SERVER_ERROR },
     );
   }
 }

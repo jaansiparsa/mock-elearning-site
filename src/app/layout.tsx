@@ -5,7 +5,7 @@ import { Geist } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 
 import { TRPCReactProvider } from "@/trpc/react";
-import Navigation from "@/components/Navigation";
+import { Navigation } from "@/components/layout";
 
 export const metadata: Metadata = {
   title: "Brex-MVP - Community Platform",

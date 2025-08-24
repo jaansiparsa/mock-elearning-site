@@ -5,6 +5,9 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+  // Next.js 15 uses App Router by default
+  // No additional configuration needed
+};
 
 export default config;

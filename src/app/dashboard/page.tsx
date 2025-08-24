@@ -1,5 +1,5 @@
-import InstructorDashboard from "./InstructorDashboard";
-import StudentDashboard from "./StudentDashboard";
+import InstructorDashboard from "@/components/dashboard/InstructorDashboard";
+import StudentDashboard from "@/components/dashboard/StudentDashboard";
 import { Suspense } from "react";
 import { auth } from "@/server/auth";
 import { redirect } from "next/navigation";

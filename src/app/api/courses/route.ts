@@ -1,7 +1,18 @@
 import { CourseCategory, DifficultyLevel } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 
+import type { Prisma } from "@prisma/client";
 import { db } from "@/server/db";
+
+// Define the request body interface for POST
+interface CreateCourseRequest {
+  title: string;
+  description: string;
+  thumbnailUrl?: string;
+  category: CourseCategory;
+  difficultyLevel: DifficultyLevel;
+  instructorId: string;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,12 +22,12 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("category") as CourseCategory | null;
     const difficulty = searchParams.get("difficulty") as DifficultyLevel | null;
     const instructorId = searchParams.get("instructorId");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const search = searchParams.get("search") || "";
+    const page = parseInt(searchParams.get("page") ?? "1");
+    const limit = parseInt(searchParams.get("limit") ?? "10");
+    const search = searchParams.get("search") ?? "";
 
-    // Build where clause
-    const where: any = {};
+    // Build where clause with proper Prisma types
+    const where: Prisma.CourseWhereInput = {};
 
     if (category) {
       where.category = category;
@@ -32,8 +43,8 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
+        { title: { contains: search } },
+        { description: { contains: search } },
       ];
     }
 
@@ -128,7 +139,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body: CreateCourseRequest =
+      (await request.json()) as CreateCourseRequest;
     const {
       title,
       description,
@@ -153,7 +165,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify instructor exists and has instructor role
-    const instructor = await prisma.user.findFirst({
+    const instructor = await db.user.findFirst({
       where: {
         id: instructorId,
         role: "instructor",
@@ -168,11 +180,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Create course
-    const course = await prisma.course.create({
+    const course = await db.course.create({
       data: {
         title,
         description,
-        thumbnailUrl: thumbnailUrl || "https://placekitten.com/400/300",
+        thumbnailUrl: thumbnailUrl ?? "https://placekitten.com/400/300",
         category,
         difficultyLevel,
         instructorId,

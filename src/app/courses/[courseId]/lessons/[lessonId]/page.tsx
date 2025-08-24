@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 
-import LessonContent from "./LessonContent";
+import { LessonContent } from "@/components/courses";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 

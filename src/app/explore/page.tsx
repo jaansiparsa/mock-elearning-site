@@ -1,8 +1,7 @@
-import type { CourseCategory, DifficultyLevel } from "@prisma/client";
+import { CourseCard, VerticalCourseCard } from "@/components/courses";
+import type { CourseCategory, DifficultyLevel } from "@/types";
+import { CourseFilters, SortControls } from "@/components/explore";
 
-import CourseCard from "@/components/CourseCard";
-import CourseFilters from "./CourseFilters";
-import SortControls from "./SortControls";
 import { Suspense } from "react";
 import { db } from "@/server/db";
 
@@ -59,7 +58,7 @@ async function getCourses(
   }
 
   // Determine sort order
-  let orderBy: Record<string, any> = {};
+  let orderBy: Record<string, "asc" | "desc" | { _count: "desc" }> = {};
   switch (sort) {
     case "newest":
       orderBy = { createdAt: "desc" };
@@ -136,8 +135,8 @@ async function getCourses(
       title: course.title,
       description: course.description,
       thumbnailUrl: course.thumbnailUrl,
-      category: course.category,
-      difficultyLevel: course.difficultyLevel,
+      category: course.category as CourseCategory,
+      difficultyLevel: course.difficultyLevel as DifficultyLevel,
       instructor: course.instructor,
       averageRating: averageRating
         ? Math.round(averageRating * 10) / 10
@@ -202,14 +201,14 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
                 </h2>
                 {resolvedSearchParams.search && (
                   <p className="mt-1 text-sm text-gray-600">
-                    Results for "{resolvedSearchParams.search}"
+                    Results for &ldquo;{resolvedSearchParams.search}&rdquo;
                   </p>
                 )}
               </div>
 
               {/* Sort Dropdown */}
               <SortControls
-                currentSort={resolvedSearchParams.sort || "newest"}
+                currentSort={resolvedSearchParams.sort ?? "newest"}
               />
             </div>
 
@@ -221,8 +220,8 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
                   No courses found
                 </h3>
                 <p className="text-gray-600">
-                  Try adjusting your filters or search terms to find what you're
-                  looking for.
+                  Try adjusting your filters or search terms to find what
+                  you&apos;re looking for.
                 </p>
               </div>
             ) : (
@@ -235,7 +234,14 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
                   }
                 >
                   {courses.map((course) => (
-                    <CourseCard key={course.courseId} course={course} />
+                    <div key={course.courseId} className="block lg:hidden">
+                      <VerticalCourseCard course={course} />
+                    </div>
+                  ))}
+                  {courses.map((course) => (
+                    <div key={course.courseId} className="hidden lg:block">
+                      <CourseCard course={course} />
+                    </div>
                   ))}
                 </Suspense>
               </div>
