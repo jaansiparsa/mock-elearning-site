@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document provides a comprehensive analysis of the backend integration requirements for the skillEd e-learning platform. The platform currently uses Next.js API routes with Prisma ORM and NextAuth.js for authentication. This analysis identifies current capabilities, gaps, and recommendations for backend team integration.
+This document provides a comprehensive analysis of the backend integration requirements for the skillEd e-learning platform. The platform currently uses Next.js API routes with Prisma ORM and NextAuth.js for authentication. 
 
 ## Current Architecture Overview
 
