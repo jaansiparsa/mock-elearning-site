@@ -470,6 +470,7 @@ if (error) {
     </div>
   );
 }
+```
 
 
 ### Future improvements**: full optimistic updates
